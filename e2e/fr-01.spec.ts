@@ -26,9 +26,10 @@ test('FR-01 success: bilingual beneficiary request remains non-binding', async (
   page,
 }, testInfo) => {
   await signIn(page);
-  await expect(
-    page.getByText('DEMO-001', { exact: true }).last(),
-  ).toBeVisible();
+  await expect(page.getByLabel('Your policy')).toHaveValue(
+    '00000000-0000-4000-8000-000000000011',
+  );
+  await expect(page.getByText('ACTIVE')).toBeVisible();
   await page.getByLabel('Beneficiary name').fill('Mali');
   await page.getByLabel('Relationship').fill('Sister');
   await page.getByRole('button', { name: 'ไทย' }).click();
