@@ -121,3 +121,10 @@
 - [ ] GitHub Actions ผ่านการทดสอบใน repo ใหม่; auto-merge/auto-close เปิดเฉพาะตามข้อตกลง
 - [ ] required checks ใช้ชื่อ job ที่รันจริงและผ่านใน PR
 - [ ] ตัวอย่างและลิงก์ของโปรเจกต์เดิมที่หลงเหลือถูกแทนที่หรือระบุว่าเป็นเพียงตัวอย่าง
+# FR-01 synthetic demo
+
+Install dependencies with `npm install`, then run `docker compose up --build`. Open `http://localhost:4173` and sign in with `owner@example.test` / `demo-password`. The other synthetic account is `other@example.test` with the same password. The internal API is reached through the web origin at `/api`; its OpenAPI contract is at `/api/v1/openapi.json`. Compose applies the database schema and idempotent seed on API startup. Data is synthetic and requests do not change policy or coverage.
+
+Run `npm test`, `npm run typecheck`, `npm run lint`, `npm run format:check`, and `npm run build`. With Compose running, install Chromium using `npx playwright install chromium` and run `npm run test:e2e`; reports go to `test-results/fr-01/`.
+
+For local development with PostgreSQL running, `npm run dev` starts the API and Vite servers together.

@@ -1,6 +1,8 @@
 # Coding standards
 
-Apply these rules to application code and infrastructure changes. [PRD.md](PRD.md) defines product behavior, [ADR.md](ADR.md) records accepted architecture choices, and [TESTING_STANDARD.md](TESTING_STANDARD.md) defines verification. The approved MVP stack is React + Vite for the web, TypeScript + Fastify for the modular API, a separate deterministic calculator, and PostgreSQL + pgvector; see [ADR 0001](adr/0001-endorsement-mvp-architecture.md). The root npm package currently runs ticket tooling only. Record real application workspaces and commands here after they exist.
+The application has npm workspaces at `apps/api` and `apps/web`. Run `npm install`, `npm test`, `npm run typecheck`, `npm run lint`, `npm run format:check`, and `npm run build` at the root. Root Prettier covers application and E2E code in scope. Run `docker compose up --build` for the synthetic app, then `npm run test:e2e`.
+
+Apply these rules to application code and infrastructure changes. [PRD.md](PRD.md) defines product behavior, [ADR.md](ADR.md) records accepted architecture choices, and [TESTING_STANDARD.md](TESTING_STANDARD.md) defines verification. The approved MVP stack is React + Vite for the web, TypeScript + Fastify for the modular API, a separate deterministic calculator, and PostgreSQL + pgvector; see [ADR 0001](adr/0001-endorsement-mvp-architecture.md). FR-01 implements the web, API, and PostgreSQL baseline; calculator and vector storage remain future work.
 
 ## Implementation order
 
@@ -12,7 +14,7 @@ Implement one supported user flow end to end before generalizing it. Reuse estab
 
 Use Oxlint for TypeScript/React linting, following the current Vite React TypeScript starter, and Prettier for formatting. Keep Prettier as a root development dependency with project configuration and scoped `format` and `format:check` scripts. Exclude generated files, lockfiles, build output, and documents; format only code in scope. Run the configured lint, type, and format checks before review. A missing check is setup work, not evidence of a pass.
 
-Keep one root lockfile if using npm workspaces. Add each dependency to the workspace that uses it. Record the actual install, test, typecheck, build, and browser E2E commands after the application exists; the current root package does not provide application checks.
+Keep one root lockfile for npm workspaces. Add each dependency to the workspace that uses it. The root package runs ticket and application checks.
 
 ## Boundaries and contracts
 

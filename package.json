@@ -1,12 +1,26 @@
 {
   "name": "bmad-ticket-workflow",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "plan:issues": "node scripts/plan-role-dev-issues.mjs",
-    "test": "node --test scripts/*.test.mjs",
+    "test": "node --test scripts/*.test.mjs && npm run test --workspace @endorsement/api && npm run test --workspace @endorsement/web",
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "npm run lint --workspaces",
+    "build": "npm run build --workspaces",
+    "dev": "node scripts/dev.mjs",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,css,json,html}\" \"e2e/**/*.ts\" \"scripts/{dev,run-e2e}.mjs\" \"*.{json,yaml,ts}\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,css,json,html}\" \"e2e/**/*.ts\" \"scripts/{dev,run-e2e}.mjs\" \"*.{json,yaml,ts}\"",
+    "test:e2e": "node scripts/run-e2e.mjs",
     "ticket:create": "node scripts/ticket-workflow.mjs create",
     "ticket:preflight": "node scripts/ticket-workflow.mjs preflight",
     "ticket:reset": "node scripts/reset-ticket-workflow.mjs",
     "ticket:sync": "node scripts/ticket-workflow.mjs sync-issue"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "prettier": "^3.6.2"
   }
 }

@@ -1,5 +1,7 @@
 # Visual and UX Constraints
 
+The implemented FR-01 screen uses the provisional handoff colors: canvas `#F7F7F4`, ink `#182C28`, accent `#176B59`, border `#CBD5CF`, and danger `#A32929`. Keep policy status in text and the non-binding notice visible in both languages.
+
 For the I02 MVP, prioritize policy ownership, ACTIVE status, the requested beneficiary details, and a clear statement that submitting a request does not change policy or coverage. Thai and English states must convey the same action and consequence. The FR-01 handoff records provisional visual choices for review.
 
 Use this document when creating or changing product screens in `design/` or the new application's UI. These are the default visual preferences for the reusable workflow; replace them when the new project's brand or user research calls for a different direction. Screens should feel purpose-built for their users and tasks, not assembled from a generic SaaS template.
