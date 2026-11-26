@@ -1,0 +1,67 @@
+# Draft story split for epic-customer-access-and-requests. Table order is build order.
+
+[[entry]]
+id = 1
+type = "story"
+title = "Run the bilingual beneficiary request path"
+description = "Create the React/Vite and Fastify workspaces, PostgreSQL schema and minimal synthetic beneficiary-path seed, web/API/database Compose baseline, and shared audit event contract; the calculator joins Compose in the proposal epic. A demo customer signs in through an API session, views an owned ACTIVE policy, and submits a beneficiary request through the Thai or English UI. The API enforces session identity, ownership before protected reads and writes, ACTIVE status before request creation, and CSRF protection on the cookie-authenticated submit; the policy stays unchanged."
+verify = "In Compose, sign in as a seeded customer, switch between Thai and English, view an owned ACTIVE policy, submit a beneficiary request with CSRF protection, and see the saved request and audit event while the policy record remains unchanged; unauthorized ownership and inactive-policy writes are refused."
+covers = ["R1", "R2"]
+after = []
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 2
+type = "story"
+title = "Enforce session and policy ownership boundaries"
+description = "Extend the session and ownership enforcement from story 1 with sign-out, full negative-case coverage for unauthenticated and cross-account policy and request reads and writes, and an owned EXPIRED policy that remains viewable but refuses new requests. Show localized refusal states."
+verify = "API and browser checks show sign-out ends access, another account's policy and requests cannot be read or changed, and an owned EXPIRED policy is viewable but cannot start a request, in both UI languages."
+covers = ["R1", "R2"]
+after = [1]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 3
+type = "story"
+title = "Submit address and payment-frequency requests"
+description = "Extend the owned ACTIVE policy request contract from stories 1 and 2 with correspondence-address and payment-frequency forms, validation, persistence, and audit events in Thai and English. Requests do not mutate the policy."
+verify = "A signed-in owner submits each request type for an ACTIVE policy in either language and sees the saved request; invalid input and EXPIRED or cross-account policies are refused without policy changes."
+covers = ["R2"]
+after = [2]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Submit accidental-death rider requests"
+description = "Extend the shared request form, validation, persistence, and audit contract from stories 1–3 with the rider request. The bilingual form collects no medical evidence and explains that real coverage may need further review."
+verify = "A signed-in owner submits a rider request for an ACTIVE policy in either language, sees the review notice, and no medical evidence or policy change is stored; EXPIRED and cross-account policies are refused."
+covers = ["R2"]
+after = [3]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Refactor sweep"
+description = "Resolve code-quality and contract duplication identified in the completed epic stories without changing their accepted behavior."
+verify = "The epic's existing API, component, and browser checks still pass after the documented cleanup."
+covers = ["R1", "R2"]
+after = [1, 2, 3, 4]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Complete the customer-access browser suite"
+description = "Add end-to-end coverage for the integrated bilingual sign-in, policy visibility, all four request types, ownership refusals, EXPIRED policy behavior, and non-binding request storage from the preceding stories."
+verify = "The browser suite runs against the seeded Compose app and passes every epic Done when case, including Thai and English journeys and unauthorized access refusals."
+covers = ["R1", "R2"]
+after = [5]
+hitl = false
+risk = "medium"

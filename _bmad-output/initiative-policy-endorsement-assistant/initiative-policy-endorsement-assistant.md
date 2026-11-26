@@ -4,7 +4,8 @@ title: "Customers can review non-binding policy endorsement proposals"
 parent: none
 sources:
   - docs/PRD.md
-companions: []
+companions:
+  - _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md
 risk: high
 ---
 
@@ -48,6 +49,7 @@ R10 (PRD 5): The complete MVP runs with seeded synthetic data using Docker Compo
 - C4 (PRD 3): The assistant does not calculate money or benefits; the separate deterministic service owns recalculated values.
 - C5 (PRD 3): The accidental-death rider flow does not collect or assess medical evidence and tells the customer that real coverage may require further review.
 - C6 (PRD 1, 3): No draft or recorded customer decision issues coverage, changes a live policy, or binds coverage.
+- C7 (PRD 1): Customer-facing screens and assistant explanations support Thai and English; cited passages retain their original wording and version.
 
 ## Done when
 
@@ -56,6 +58,7 @@ R10 (PRD 5): The complete MVP runs with seeded synthetic data using Docker Compo
 - All four change types reach a draft when eligible; ineligible and unresolved cases show the appropriate status and reason.
 - Each proposal shows cited policy and rule evidence, and deterministic calculation output when applicable; customer decisions appear in history.
 - Evaluation meets every target in PRD section 4, including zero unauthorized approvals or live-policy writes.
+- Customer-facing screens and assistant explanations are usable in Thai and English without altering cited source wording.
 
 ## Boundaries
 
@@ -67,12 +70,14 @@ R10 (PRD 5): The complete MVP runs with seeded synthetic data using Docker Compo
 
 - prd — docs/PRD.md, sections 1–5
 - testing — docs/TESTING_STANDARD.md, Evaluation protocol
+- architecture — _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md, AD-1–AD-8
 
 ## Notes
 
 - Decision: 2026-11-26 — Use the existing insurance endorsement PRD as this project's requirements, per the user's confirmation.
 - Decision: 2026-11-26 — The user approved five epics in build order: customer access and requests; cited evidence and assessment; calculated proposals; decisions and audit history; integrated evaluation and Docker Compose. The first epic owns the runnable platform baseline and shared audit event contract; the last owns full-system verification.
 - Decision: 2026-11-26 — Keep this MVP synthetic and non-binding while preserving service boundaries for later production work; real data and coverage changes require separate scope and architecture.
+- Decision: 2026-11-26 — The user chose Thai and English for the customer-facing MVP.
 - Open question: The PRD links detailed FR tickets that were removed from this checkout; new tickets must be drafted or explicitly recovered and reviewed before implementation.
 - Decision: 2026-11-26 — Shared MVP service, data, and deployment boundaries are accepted in docs/adr/0001-endorsement-mvp-architecture.md and the BMad architecture spine; each epic must adopt the relevant rules before its stories are built.
 - Open question: Minimum sample counts for the PRD's evaluation targets are not yet fixed; the evaluation epic must set them before reporting target attainment.

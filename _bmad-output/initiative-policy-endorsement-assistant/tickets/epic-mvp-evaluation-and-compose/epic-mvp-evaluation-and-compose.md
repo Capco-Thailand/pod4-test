@@ -5,7 +5,8 @@ parent: initiative-policy-endorsement-assistant
 covers: [R9, R10]
 sources:
   - _bmad-output/initiative-policy-endorsement-assistant/initiative-policy-endorsement-assistant.md
-companions: []
+companions:
+  - _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md
 after: [epic-decisions-and-audit-history]
 refined: false
 risk: high
@@ -35,6 +36,7 @@ The complete synthetic MVP runs reproducibly and meets every evaluation target i
 ## References
 
 - parent — _bmad-output/initiative-policy-endorsement-assistant/initiative-policy-endorsement-assistant.md, Requirements R9–R10 and Constraints
+- architecture — _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md, AD-4–AD-8
 - testing — docs/TESTING_STANDARD.md, Evaluation protocol
 
 ## Notes

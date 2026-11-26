@@ -1,6 +1,6 @@
 # PRD — I02 Life Insurance Policy Endorsement Assistant
 
-**Version:** 1.9 | **Date:** 2026-11-26 | **Status:** MVP
+**Version:** 1.10 | **Date:** 2026-11-26 | **Status:** MVP
 
 This PRD states the business outcome, product scope, cross-feature rules, and success measures. Detailed behavior and acceptance criteria will be rebuilt or reviewed in `docs/tickets/` and `docs/backlog/` before implementation; those folders are absent in this checkout. GitHub Issues track discussion and delivery status; [ticket workflow](TICKETING.md) explains how the records connect. Architecture decisions live in [ADR.md](ADR.md).
 
@@ -9,6 +9,7 @@ This PRD states the business outcome, product scope, cross-feature rules, and su
 Build a customer-facing AI-assisted life insurance endorsement request workflow. Customers select one of their policies and submit a requested change. The assistant checks the authorized policy's versioned policy wording and the applicable endorsement rules from vector retrieval, then explains with citations whether the request can proceed, cannot proceed, or needs further review. When an eligible change affects premium or benefits, the workflow calls a separate deterministic calculation service and presents its returned proposal for customer review.
 
 - **Users:** Authenticated customers using synthetic demo accounts to request and review changes to their own policies.
+- **Languages:** Customer-facing screens and assistant explanations support Thai and English. Cited source passages retain their original wording and version.
 - **Supported changes:** Beneficiary, correspondence address, payment frequency, and accidental-death rider.
 - **Policy statuses:** `ACTIVE` and `EXPIRED`; only `ACTIVE` policies may start or submit an endorsement request. An `EXPIRED` policy cannot create a request.
 - **Data:** Synthetic policy records and versioned mock policy documents, customer profiles, mock endorsement rules, and rating tables only. FR-04 and FR-05 will supply the RAG source documents for the demo products.

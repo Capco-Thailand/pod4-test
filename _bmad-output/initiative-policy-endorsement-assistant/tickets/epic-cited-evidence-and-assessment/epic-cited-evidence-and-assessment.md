@@ -5,7 +5,8 @@ parent: initiative-policy-endorsement-assistant
 covers: [R3, R4]
 sources:
   - _bmad-output/initiative-policy-endorsement-assistant/initiative-policy-endorsement-assistant.md
-companions: []
+companions:
+  - _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md
 after: [epic-customer-access-and-requests]
 refined: false
 risk: high
@@ -35,6 +36,7 @@ A customer receives an explained `CAN_PROCEED`, `CANNOT_PROCEED`, or `NEEDS_REVI
 ## References
 
 - parent — _bmad-output/initiative-policy-endorsement-assistant/initiative-policy-endorsement-assistant.md, Requirements R3–R4 and Constraints
+- architecture — _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md, AD-1–AD-4 and AD-6–AD-8
 
 ## Notes
 

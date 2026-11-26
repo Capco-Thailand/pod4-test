@@ -5,7 +5,8 @@ parent: initiative-policy-endorsement-assistant
 covers: [R5, R6]
 sources:
   - _bmad-output/initiative-policy-endorsement-assistant/initiative-policy-endorsement-assistant.md
-companions: []
+companions:
+  - _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md
 after: [epic-cited-evidence-and-assessment]
 refined: false
 risk: high
@@ -35,6 +36,7 @@ A customer sees current and proposed policy values, with calculated changes when
 ## References
 
 - parent — _bmad-output/initiative-policy-endorsement-assistant/initiative-policy-endorsement-assistant.md, Requirements R5–R6 and Constraints
+- architecture — _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md, AD-1 and AD-3–AD-8
 
 ## Notes
 

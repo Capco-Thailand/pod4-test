@@ -5,7 +5,8 @@ parent: initiative-policy-endorsement-assistant
 covers: [R7, R8]
 sources:
   - _bmad-output/initiative-policy-endorsement-assistant/initiative-policy-endorsement-assistant.md
-companions: []
+companions:
+  - _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md
 after: [epic-calculated-proposals]
 refined: false
 risk: high
@@ -35,6 +36,7 @@ A customer can decide on their own non-binding proposal and later see the decisi
 ## References
 
 - parent — _bmad-output/initiative-policy-endorsement-assistant/initiative-policy-endorsement-assistant.md, Requirements R7–R8 and Constraints
+- architecture — _bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md, AD-1–AD-3 and AD-6–AD-8
 
 ## Notes
 
