@@ -1,6 +1,9 @@
 node_modules
-package-lock.json
-.next
 dist
 coverage
-apps/web/next-env.d.ts
+test-results
+playwright-report
+package-lock.json
+docs
+design
+_bmad-output

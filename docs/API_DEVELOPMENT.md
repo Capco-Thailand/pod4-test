@@ -1,10 +1,23 @@
 # API development
 
-This project has no application API yet. [ADR 0001](adr/0001-endorsement-mvp-architecture.md) selects a modular TypeScript/Fastify API as the public trust boundary, with a separate internal calculator and PostgreSQL/pgvector. This file will record runnable setup and public routes once they exist; old routes, demo accounts, and ports in Git history are not current contracts. The root `package.json` currently provides ticket commands and their unit tests only.
+## Implemented FR-01 API
+
+Run `npm install` and `docker compose up --build`. The web app and API share `http://localhost:4173`; the ingress proxies `/api` to the internal API service. Compose applies `apps/api/src/schema.sql` and seeds only synthetic accounts when `SEED_DEMO=true`. Demo credentials are `owner@example.test` or `other@example.test` with password `demo-password`. The API refuses startup if PostgreSQL or migration fails. OpenAPI is at `GET /api/v1/openapi.json` through the web ingress.
+
+| Method and path | Success | Rejection |
+| --- | --- | --- |
+| `POST /api/v1/session` with email/password | `200 {csrfToken}` and HttpOnly cookie | `400 VALIDATION_ERROR`, `401 INVALID_CREDENTIALS` |
+| `GET /api/v1/policies` | `200` owned policy list | `401 UNAUTHENTICATED` |
+| `GET /api/v1/policies/:policyId` | `200` owned policy | `401 UNAUTHENTICATED`, `404 POLICY_NOT_FOUND` |
+| `POST /api/v1/policies/:policyId/beneficiary-requests` with `{name,relationship}` and `x-csrf-token` | `201 {requestId}` | `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `403 CSRF_INVALID`, `404 POLICY_NOT_FOUND`, `409 POLICY_INACTIVE` |
+
+Errors use `{ "error": { "code": "..." } }`. The actor comes only from the opaque database session. Missing and foreign policies both return 404. Sessions expire after 30 idle minutes and renew on protected calls. Cookies use HttpOnly and SameSite Strict, with Secure under HTTPS. Name and relationship are trimmed, required, and at most 120 characters. A request and audit event commit together; successful sign-in commits its session and audit event together. Rejected sign-ins and protected actions append audit events with the actor and owned policy references when available. Audit excludes tokens and beneficiary details, and policy rows stay unchanged. Retrying a successful submission creates another request because FR-01 has no idempotency key. `DATABASE_URL` and `SEED_DEMO` are server-only settings; the browser uses same-origin `/api` through the web proxy.
+
+[ADR 0001](adr/0001-endorsement-mvp-architecture.md) selects the modular TypeScript/Fastify API as the public trust boundary. FR-01 implements the first session, policy, and request routes. The calculator remains future work.
 
 ## Start and configuration
 
-The selected runtime and server framework are recorded in [ADR.md](ADR.md). Add the actual install, migration, seed, start, typecheck, build, and test commands here after implementing them. State required environment variables, safe local defaults, the API origin, allowed browser origin, and which configuration is server-only. Keep secrets out of the repository and browser bundle.
+The selected runtime and server framework are recorded in [ADR.md](ADR.md). Root commands are listed above and in [README.md](../README.md). Keep secrets out of the repository and browser bundle.
 
 If the application has a database, make migrations and test-data setup explicit. Use an isolated test store and verify that test or reset commands cannot target the application database. Document startup dependencies and what happens when a required service is unavailable.
 

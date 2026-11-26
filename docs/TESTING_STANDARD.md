@@ -1,5 +1,7 @@
 # Testing standard
 
+FR-01 uses `npm test` for ticket scripts, Fastify API injection, database transaction, and React component checks. `npm run test:e2e` runs Chromium against the Compose app at `localhost:4173` and archives a report under `test-results/fr-01/`. API injection proves response and side-effect gates with a controlled store; transaction tests prove commit/rollback ordering with a controlled database client. Running PostgreSQL and browser tests are needed to prove persistence and the full journey. Use the three seeded policies in `apps/api/src/server.ts` for active, expired, and cross-account scenarios.
+
 QA/Sec works across the components this project builds. Use synthetic test data that follows its privacy and safety rules. Tie each test case to a goal, workflow step, safety boundary, or success measure in the current [PRD.md](PRD.md), and record the expected state, external calls, and audit result where applicable.
 
 ## Test-driven development
@@ -32,7 +34,7 @@ Run browser E2E scenarios through the public UI against the API and web app when
 
 For a screen with a reviewed UX handoff, compare stable desktop and narrow viewport screenshots to baselines reviewed against its `DESIGN.md`, `EXPERIENCE.md`, and browser-viewable mockup. A passing screenshot comparison proves the current UI matches that baseline; it does not prove exact pixel identity with the mockup or cover states and pages absent from the test. Remove development-only overlays from captures and review intended design changes before updating baselines. Attach both the reference and current images to the HTML result even when a visual test passes.
 
-Save each Playwright HTML result under a ticket-specific folder, `test-results/<ticket-id>/`, with the local run date and time in the HTML filename. Keep its image and trace assets beside that file so older reports remain viewable. Keep `test-results/index.html` pointing to the latest run across all ticket folders. Use the ID from the active ticket and the new project's configured timezone for the timestamp. Before browser E2E becomes a delivery gate, provide a working `npm run test:e2e` command, install Chromium with `npx playwright install chromium`, and run the suite. The current root package provides ticket tests only.
+Save each Playwright HTML result under a ticket-specific folder, `test-results/<ticket-id>/`, with the local run date and time in the HTML filename. Keep its image and trace assets beside that file so older reports remain viewable. Keep `test-results/index.html` pointing to the latest run across all ticket folders. Use the ID from the active ticket and the new project's configured timezone for the timestamp. Before browser E2E becomes a delivery gate, provide a working `npm run test:e2e` command, install Chromium with `npx playwright install chromium`, and run the suite.
 
 ## Acceptance criteria traceability
 

@@ -1,5 +1,7 @@
 # Design standard
 
+The implemented FR-01 React screen is `apps/web/src/App.tsx`, with visual tokens in `apps/web/src/style.css`. Keep both languages in the screen copy map, preserve values on language switch, and focus errors or confirmations after submission. The single reading column follows the provisional handoff.
+
 For the I02 policy endorsement MVP, the FR-01 handoff lives in `_bmad-output/initiative-policy-endorsement-assistant/ux-fr-01/`. Its sign-in and beneficiary-request mockups live under `design/page/`. The visual tokens are provisional pending design review; the required behavior is the bilingual, non-binding customer request flow in the selected ticket.
 
 PO/UX design output is browser-viewable HTML, CSS, and JavaScript under `design/`. These files show intended pages and interactions; the new project's application architecture determines where the implemented UI lives.

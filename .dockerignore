@@ -1,0 +1,7 @@
+node_modules
+.git
+.worktrees
+.npm-cache
+test-results
+playwright-report
+apps/*/dist
