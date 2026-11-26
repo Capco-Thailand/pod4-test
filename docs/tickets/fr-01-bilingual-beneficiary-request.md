@@ -1,6 +1,6 @@
 **Title:** [Story] Run the bilingual beneficiary request path
 **Labels:** `type:story`, `role:dev`, `role:fe`, `role:be`
-**GitHub Issue:** Pending ticket/UX PR merge
+**GitHub Issue:** https://github.com/Capco-Thailand/pod4-test/issues/3
 **Feature ID:** FR-01
 **Product context:** [PRD](../PRD.md)
 **Risk:** High — first session, authorization, and non-binding write path.
