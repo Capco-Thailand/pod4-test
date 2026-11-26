@@ -6,6 +6,9 @@
 .fastembed_cache/
 .uv-cache/
 
+# BMad architecture reviewer scratch
+_bmad-output/**/reviews/
+
 # API build artifacts
 apps/api/node_modules/
 apps/api/dist/

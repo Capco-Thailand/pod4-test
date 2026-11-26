@@ -1,5 +1,7 @@
 # BMad workflow starter: คู่มือเริ่มแอปใหม่
 
+> สถานะโครงการ 2026-11-26: ผู้ใช้ยืนยันให้ใช้ [docs/PRD.md](docs/PRD.md) ของ I02 Life Insurance Policy Endorsement Assistant เป็นขอบเขตงานปัจจุบัน และเริ่มวางแผนใน `_bmad-output/initiative-policy-endorsement-assistant/` แล้ว โค้ดแอปและ ticket เดิมยังถูกนำออก; ต้องสร้างหรือทบทวน ticket ใหม่ก่อนพัฒนา ขั้นตอนเปลี่ยน PRD ด้านล่างใช้เมื่อเริ่ม **โปรเจกต์อื่น** จาก starter นี้
+
 รีโปนี้เก็บ **วิธีทำงานเดิม** ตั้งแต่ PRD → ticket/UX handoff → GitHub Issue → implementation plan → `bmad-build` → browser E2E → implementation PR → ปิด Issue หลัง merge ส่วนโค้ดแอปเดิมถูกนำออกแล้ว เอกสารและสคริปต์บางส่วนยังมีค่าเฉพาะโปรเจกต์เดิม จึงต้องตั้งค่าแต่ละขั้นให้ตรงกับแอปใหม่ก่อนใช้งานขั้นนั้น
 
 เอกสารนี้เป็นลำดับงานสำหรับ AI agent ที่รับหน้าที่ตั้งโปรเจกต์ใหม่ อ่าน [AGENTS.md](AGENTS.md) สำหรับกฎที่ใช้ระหว่างทำงาน และ [docs/TICKETING.md](docs/TICKETING.md) สำหรับรายละเอียด ticket/Issue workflow หากผู้ใช้ขอเพียงแค่เริ่มตั้งค่า ให้ทำเฉพาะขั้นตั้งค่าและการตรวจสอบในเอกสารนี้ ยังไม่ต้องสร้าง feature ticket หรือเปิด Issue เอง
@@ -8,7 +10,7 @@
 
 - `.agents/skills/`, `_bmad/`, `_bmad/custom/`, สคริปต์ ticket ใน `scripts/`, template และเอกสารมาตรฐานยังอยู่
 - `package.json` มีเพียงคำสั่ง ticket, `plan:issues` และ `npm test` สำหรับทดสอบสคริปต์ ยังไม่มี source ของแอป, workspace, คำสั่ง `dev`, `build`, `typecheck`, `format:check` หรือ `test:e2e`
-- [docs/PRD.md](docs/PRD.md) ยังเป็น PRD ของแอปประกันเดิม ต้องเขียนใหม่จากขอบเขตของแอปใหม่ก่อนนำไปใช้
+- [docs/PRD.md](docs/PRD.md) ถูกเลือกให้เป็น PRD ของโปรเจกต์ประกันนี้แล้ว แต่ลิงก์ ticket เดิมยังไม่มีใน checkout นี้ ต้องสร้างหรือทบทวน ticket ก่อนพัฒนา
 - `_bmad/config.toml` ยังเก็บชื่อโปรเจกต์เดิมและเป็นไฟล์ที่ installer ดูแล ให้เปลี่ยนคำตอบผ่าน BMad setup; ตรวจ `_bmad/custom/` และ active initiative ด้วย
 - `FR` ยังเป็น feature ID prefix ในเอกสาร, skill reference, script, test และ Issue template เปลี่ยนเป็นตัวย่ออื่นได้ แต่ต้องเปลี่ยนทุกจุดที่เกี่ยวข้องพร้อมกัน
 - GitHub Actions ใน `.github/workflows/` ถูกปิดด้วย `if: false`; `ticket-check.yml` ยังอ้าง Postgres/pgvector, `apps/api` และคำสั่งตรวจแอปเดิม ห้ามถือว่ามี CI หรือ auto-merge ใช้งานแล้ว

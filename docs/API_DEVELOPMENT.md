@@ -1,10 +1,10 @@
 # API development
 
-The new project has no application API yet. This file is the place to record its runnable setup and public contracts once they exist. The previous project's routes, demo accounts, database, and ports are not contracts for the new project. The root `package.json` currently provides ticket commands and their unit tests only.
+This project has no application API yet. [ADR 0001](adr/0001-endorsement-mvp-architecture.md) selects a modular TypeScript/Fastify API as the public trust boundary, with a separate internal calculator and PostgreSQL/pgvector. This file will record runnable setup and public routes once they exist; old routes, demo accounts, and ports in Git history are not current contracts. The root `package.json` currently provides ticket commands and their unit tests only.
 
 ## Start and configuration
 
-Before adding an API, record the selected runtime and server framework in [ADR.md](ADR.md) when the choice is a real architectural trade-off. Add the actual install, migration, seed, start, typecheck, build, and test commands here after implementing them. State required environment variables, safe local defaults, the API origin, allowed browser origin, and which configuration is server-only. Keep secrets out of the repository and browser bundle.
+The selected runtime and server framework are recorded in [ADR.md](ADR.md). Add the actual install, migration, seed, start, typecheck, build, and test commands here after implementing them. State required environment variables, safe local defaults, the API origin, allowed browser origin, and which configuration is server-only. Keep secrets out of the repository and browser bundle.
 
 If the application has a database, make migrations and test-data setup explicit. Use an isolated test store and verify that test or reset commands cannot target the application database. Document startup dependencies and what happens when a required service is unavailable.
 

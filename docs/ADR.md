@@ -1,6 +1,6 @@
 # Architecture decisions
 
-This is the decision register for the next project. No architecture choice has been accepted yet. The previous project's stack and data choices remain in Git history and do not apply here.
+This is the decision register for the I02 insurance endorsement project. The accepted MVP choices are in [ADR 0001](adr/0001-endorsement-mvp-architecture.md) and the [BMad architecture spine](../_bmad-output/initiative-policy-endorsement-assistant/architecture-policy-endorsement-assistant/architecture-policy-endorsement-assistant.md). Older stack decisions in Git history do not apply automatically.
 
 ## What belongs here
 
@@ -23,6 +23,6 @@ Create `docs/adr/0001-<decision>.md` when the first decision is made; use the ne
 
 | Decision | Status | Record |
 | --- | --- | --- |
-| No decisions yet | Open | — |
+| MVP stack, trust, data, and service boundaries | Accepted | [ADR 0001](adr/0001-endorsement-mvp-architecture.md) |
 
 When a choice changes, record the new decision and mark the earlier one superseded. Update affected tickets, contracts, tests, and implementation guidance in the same change. Do not silently rewrite the reason for an accepted choice.

@@ -1,10 +1,10 @@
 <!-- bmad:context -->
-<!-- Verified 2026-11-16 against the monorepo workspace setup and ticket workflow. Managed by bmad-project-context. -->
+<!-- Verified 2026-11-26 against the selected PRD, architecture spine, and ticket workflow. Managed by bmad-project-context. -->
 
 ## BMad delivery workflow
 For a new app setup, read [README.md](README.md) for the ordered setup steps, questions for the user, and readiness checks before feature delivery.
 
-This repository preserves the ticket, UX, implementation, and GitHub delivery flow for a new project. Before using it, replace `docs/PRD.md` with that project's business scope and boundaries, update [TICKETING.md](docs/TICKETING.md) with its ticket rules, and replace [ADR.md](docs/ADR.md) with its architecture decisions. The roles share the repository; folder routes indicate usual work areas, not exclusive ownership.
+This repository preserves the ticket, UX, implementation, and GitHub delivery flow. For the current I02 insurance endorsement project, the user confirmed [PRD.md](docs/PRD.md) as the product scope on 2026-11-26; its former ticket links must be rebuilt or reviewed before implementation. A different project must replace the PRD, update [TICKETING.md](docs/TICKETING.md), and record its own decisions in [ADR.md](docs/ADR.md). The roles share the repository; folder routes indicate usual work areas, not exclusive ownership.
 
 The root `package.json` and lockfile currently provide ticket commands and their tests. Add the new application's workspaces, checks, and browser E2E command before implementation. The ticket scripts retain `FR` as the feature ID prefix; change it consistently across scripts, templates, and tests if the new project chooses another prefix.
 

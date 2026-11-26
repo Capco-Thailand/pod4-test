@@ -1,8 +1,8 @@
 # PRD — I02 Life Insurance Policy Endorsement Assistant
 
-**Version:** 1.8 | **Date:** 2026-11-23 | **Status:** MVP
+**Version:** 1.9 | **Date:** 2026-11-26 | **Status:** MVP
 
-This PRD states the business outcome, product scope, cross-feature rules, and success measures. Detailed behavior and acceptance criteria live in [implementation tickets](tickets/) and [backlog tickets](backlog/). GitHub Issues track discussion and delivery status; [ticket workflow](TICKETING.md) explains how the records connect. Architecture decisions live in [ADR.md](ADR.md).
+This PRD states the business outcome, product scope, cross-feature rules, and success measures. Detailed behavior and acceptance criteria will be rebuilt or reviewed in `docs/tickets/` and `docs/backlog/` before implementation; those folders are absent in this checkout. GitHub Issues track discussion and delivery status; [ticket workflow](TICKETING.md) explains how the records connect. Architecture decisions live in [ADR.md](ADR.md).
 
 ## 1. Product goal and scope
 
@@ -11,16 +11,18 @@ Build a customer-facing AI-assisted life insurance endorsement request workflow.
 - **Users:** Authenticated customers using synthetic demo accounts to request and review changes to their own policies.
 - **Supported changes:** Beneficiary, correspondence address, payment frequency, and accidental-death rider.
 - **Policy statuses:** `ACTIVE` and `EXPIRED`; only `ACTIVE` policies may start or submit an endorsement request. An `EXPIRED` policy cannot create a request.
-- **Data:** Synthetic policy records and versioned mock policy documents, customer profiles, mock endorsement rules, and rating tables only. FR-04 and FR-05 supply the RAG source documents for the existing demo products.
+- **Data:** Synthetic policy records and versioned mock policy documents, customer profiles, mock endorsement rules, and rating tables only. FR-04 and FR-05 will supply the RAG source documents for the demo products.
 - **Out of scope:** Document upload in the endorsement flow, production identity-provider integration, eKYC during the endorsement request, real document inspection/OCR, medical underwriting, insurer integrations, issuance, live policy updates, or coverage binding.
+
+**Future direction (confirmed 2026-11-26):** Design the synthetic, non-binding MVP so its service boundaries can support later production work. Real customer data, production identity, insurer integration, issuance, and coverage changes require a separately approved scope and architecture before use.
 
 ### Policy-detail expansion
 
-[FR-14](tickets/fr-14-expand-policy-detail-with-coverage.md) adds synthetic insurer and product identity, coverage amounts, and key exclusions to the existing policy detail page, each supported by versioned synthetic policy wording. Its three seeded products, coverage amounts, exclusions, and source section IDs are accepted in the ticket. The view remains read-only and follows the same owner authorization and non-binding boundaries as the MVP. FR-14 is outside the MVP definition of done.
+FR-14 plans synthetic insurer and product identity, coverage amounts, and key exclusions on the policy detail page, each supported by versioned synthetic policy wording. Its former detailed ticket specified three seeded products, coverage amounts, exclusions, and source section IDs; that ticket is absent and must be reviewed before implementation. The view remains read-only and follows the same owner authorization and non-binding boundaries as the MVP. FR-14 is outside the MVP definition of done.
 
 ### Authentication and access
 
-Customers use individual synthetic demo accounts. A customer can view and request changes only for policies linked to that account. The customer reviews the proposed updated-policy view for their own request and records an approval or rejection; another customer's request cannot be approved. Sign-in and policy ownership checks provide the MVP access boundary; no separate eKYC step runs during an endorsement request. The detailed authentication, session, authorization, and audit requirements are in the [FR-01 ticket](tickets/fr-01-authenticate-customers.md).
+Customers use individual synthetic demo accounts. A customer can view and request changes only for policies linked to that account. The customer reviews the proposed updated-policy view for their own request and records an approval or rejection; another customer's request cannot be approved. Sign-in and policy ownership checks provide the MVP access boundary; no separate eKYC step runs during an endorsement request. Detailed authentication, session, authorization, and audit requirements must be rebuilt or reviewed in FR-01 before implementation.
 
 ## 2. Customer journey
 
@@ -50,7 +52,7 @@ The demonstration uses synthetic data only. Document upload is not part of this 
 | Unauthorized approvals, live-policy writes, or coverage binding | **0** |
 | Unauthenticated protected actions or cross-account policy/draft access | **0** |
 
-The evaluation design, minimum case counts, reporting fields, and regression scenarios are in [TESTING_STANDARD.md](TESTING_STANDARD.md#evaluation-protocol).
+The evaluation protocol, reporting fields, and regression scenarios are in [TESTING_STANDARD.md](TESTING_STANDARD.md#evaluation-protocol). Minimum case counts must be fixed in the evaluation set before a target is claimed.
 
 ## 5. Definition of done
 
