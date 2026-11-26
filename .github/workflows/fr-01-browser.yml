@@ -1,0 +1,65 @@
+name: FR-01 browser verification
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/fr-01-browser.yml'
+      - 'apps/**'
+      - 'e2e/**'
+      - 'compose.yaml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'playwright.config.ts'
+      - 'scripts/run-e2e.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Start synthetic FR-01 stack
+        run: docker compose -f compose.yaml up -d --build
+      - name: Wait for web ingress
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost:4173/ > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f compose.yaml ps
+          exit 1
+      - name: Run FR-01 browser suite
+        run: npm run test:e2e
+      - name: Capture Compose logs
+        if: always()
+        run: |
+          mkdir -p ci-logs
+          docker compose -f compose.yaml logs --no-color > ci-logs/compose.log 2>&1 || true
+      - name: Upload browser report and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fr-01-browser-${{ github.run_id }}
+          path: |
+            test-results/
+            ci-logs/
+          if-no-files-found: warn
+      - name: Stop synthetic stack
+        if: always()
+        run: docker compose -f compose.yaml down -v
