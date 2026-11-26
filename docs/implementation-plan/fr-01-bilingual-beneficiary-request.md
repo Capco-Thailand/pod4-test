@@ -96,12 +96,14 @@ Implementation evidence (2026-11-26):
 
 | FR-01 criterion | Seam and expected result | Result |
 | --- | --- | --- |
-| Seeded owner creates request and audit without policy update | API injection `apps/api/src/app.test.ts`; transaction contract `apps/api/src/store.test.ts`; browser `e2e/fr-01.spec.ts` | API/transaction passed; browser blocked by unavailable Compose service, so persistence remains unverified |
-| Anonymous and other-account access refused | API injection and browser access scenario; 401/404 with no protected data | API passed; browser blocked |
-| Invalid input, CSRF, and EXPIRED refused | API injection and browser refusal scenario; no create call | API passed; browser blocked |
-| Bilingual, non-binding UI and focus | React component `apps/web/src/App.test.tsx`; browser success/refusal scenarios | Component passed; browser blocked |
+| Seeded owner creates request and audit without policy update | API injection `apps/api/src/app.test.ts`; transaction contract `apps/api/src/store.test.ts`; browser `e2e/fr-01.spec.ts`; hosted database assertion | API/transaction and browser passed; database assertion added for the next hosted run |
+| Anonymous and other-account access refused | API injection and browser access scenario; 401/404 with no protected data | API and hosted browser passed |
+| Invalid input, CSRF, and EXPIRED refused | API injection and browser refusal scenario; no create call | API and hosted browser passed |
+| Bilingual, non-binding UI and focus | React component `apps/web/src/App.test.tsx`; browser success/refusal scenarios | Component and hosted browser passed; visual baseline comparison pending |
 
 Red/green sequence: sign-in/read test failed on missing `app.js`, then passed; request test returned 404 before the route, then passed; transaction tests failed on missing `store.js`, then passed; UI test failed on missing `App`, then passed; HTTPS proxy cookie test lacked `Secure`, then passed after proxy trust configuration. Audit refusal test had zero events before audit calls, then passed; successful sign-in audit test showed one insert without a transaction, then passed after transaction implementation. `npm test`, `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm run build`, `docker compose config --quiet`, and `git diff --cached --check` passed. `npx playwright install chromium` passed. `npm run test:e2e` ran four Chromium scenarios and archived `test-results/fr-01/2026-11-26-15-02-26.html`, but all scenarios failed with connection refused because Docker Desktop's daemon is unavailable and no PostgreSQL service is running. Full persistence, browser criterion coverage, and visual baselines remain unverified.
+
+Hosted verification (2026-11-26): GitHub Actions run [45788376205](https://github.com/Capco-Thailand/pod4-test/actions/runs/45788376205) started the Compose stack and passed all four Chromium scenarios. Its artifact [fr-01-browser-45788376205](https://github.com/Capco-Thailand/pod4-test/actions/runs/45788376205/artifacts/15101142448) contains `test-results/fr-01/2026-11-26-16-04-10.html`, screenshots, traces, and Compose logs. Direct database persistence/audit assertions were added in the following commit and await a hosted rerun. No reviewed visual baseline comparison exists yet.
 
 **Commands:**
 - `npm test` — API, UI, and ticket checks pass.

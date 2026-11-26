@@ -46,6 +46,10 @@ jobs:
           exit 1
       - name: Run FR-01 browser suite
         run: npm run test:e2e
+      - name: Verify persisted request, audit, and unchanged policy
+        run: |
+          result=$(docker compose -f compose.yaml exec -T db psql -U endorsement -d endorsement -v ON_ERROR_STOP=1 -Atc "SELECT (SELECT count(*) FROM beneficiary_requests) = 1 AND (SELECT count(*) FROM beneficiary_requests r JOIN audit_events a ON a.request_id = r.id WHERE a.action = 'BENEFICIARY_REQUEST_CREATED' AND a.outcome = 'SUCCESS') = 1 AND (SELECT coverage FROM policies WHERE number = 'DEMO-001') = 'THB 1,000,000' AND (SELECT status FROM policies WHERE number = 'DEMO-001') = 'ACTIVE';")
+          test "$result" = t
       - name: Capture Compose logs
         if: always()
         run: |
