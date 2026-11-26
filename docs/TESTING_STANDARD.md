@@ -1,6 +1,6 @@
 # Testing standard
 
-QA/Sec works across the components the new project actually builds. Use test data that follows its privacy and safety rules. Tie each test case to a goal, workflow step, safety boundary, or success measure in [PRD.md](PRD.md), and record the expected state, external calls, and audit result where applicable. Replace the previous project's PRD before using its measures as a test source.
+QA/Sec works across the components this project builds. Use synthetic test data that follows its privacy and safety rules. Tie each test case to a goal, workflow step, safety boundary, or success measure in the current [PRD.md](PRD.md), and record the expected state, external calls, and audit result where applicable.
 
 ## Test-driven development
 

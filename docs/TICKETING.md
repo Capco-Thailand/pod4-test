@@ -1,6 +1,6 @@
 # Requirements and ticket workflow
 
-> Reuse note: this document preserves the ticket, UX, Issue, and implementation sequence. Ticket scripts and npm entry points are restored. Replace the previous project's PRD, ADR, application checks, and ticket content before using the sequence in a new project. GitHub Actions remain disabled until those checks are configured and verified.
+> Current-project note: the user selected the existing I02 insurance endorsement PRD on 2026-11-26. This document preserves the ticket, UX, Issue, and implementation sequence; ticket scripts and npm entry points are restored. Its old ticket records and application checks still need to be rebuilt or reviewed before delivery. A different project must replace the PRD and architecture decisions. GitHub Actions remain disabled until the checks are configured and verified.
 
 The [PRD](PRD.md) records the business goal, scope, cross-feature safety boundaries, and success measures. The [ADR](ADR.md) records architecture choices. Feature IDs, detailed requirements, and acceptance criteria live in one Markdown file per ticket:
 

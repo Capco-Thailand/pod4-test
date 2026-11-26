@@ -1,0 +1,1 @@
+let current='en';const toggle=document.getElementById('lang');toggle?.addEventListener('click',()=>{current=current==='en'?'th':'en';document.documentElement.lang=current;toggle.textContent=current==='en'?'ไทย':'English';document.querySelectorAll('[data-en][data-th]').forEach(el=>{el.textContent=el.dataset[current]})});
