@@ -71,5 +71,6 @@ R10 (PRD 5): The complete MVP runs with seeded synthetic data using Docker Compo
 ## Notes
 
 - Decision: 2026-11-26 — Use the existing insurance endorsement PRD as this project's requirements, per the user's confirmation.
+- Decision: 2026-11-26 — The user approved five epics in build order: customer access and requests; cited evidence and assessment; calculated proposals; decisions and audit history; integrated evaluation and Docker Compose. The first epic owns the runnable platform baseline and shared audit event contract; the last owns full-system verification.
 - Open question: The PRD links detailed FR tickets that were removed from this checkout; new tickets must be drafted or explicitly recovered and reviewed before implementation.
 - Open question: The architecture register has no accepted decisions; shared service, data, and deployment choices must be settled before dependent stories are built.

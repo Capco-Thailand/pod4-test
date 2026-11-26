@@ -1,0 +1,40 @@
+# Approved epic split for the PRD scope. Table order is build order.
+
+[[epic]]
+id = 1
+slug = "epic-customer-access-and-requests"
+title = "Customers access policies and create requests"
+description = "A signed-in customer can see their own policies and submit one of the four supported request types only for an active policy; the first runnable app, test baseline, and shared audit event contract are in place."
+covers = ["R1", "R2"]
+
+[[epic]]
+id = 2
+slug = "epic-cited-evidence-and-assessment"
+title = "Requests receive cited assessments"
+description = "An authorized request retrieves versioned policy wording and applicable rules, then receives an explained CAN_PROCEED, CANNOT_PROCEED, or NEEDS_REVIEW assessment."
+covers = ["R3", "R4"]
+after = [{ epic = 1, needs = "authenticated policy ownership and request contract" }]
+
+[[epic]]
+id = 3
+slug = "epic-calculated-proposals"
+title = "Customers compare calculated proposals"
+description = "An eligible assessment invokes a separate deterministic calculation service when needed and presents current and proposed policy values for customer review."
+covers = ["R5", "R6"]
+after = [{ epic = 2, needs = "cited eligibility outcome and authorized request" }]
+
+[[epic]]
+id = 4
+slug = "epic-decisions-and-audit-history"
+title = "Customers record decisions and see history"
+description = "The owning customer approves or rejects a non-binding proposal, sees the decision in history, and verifies that prior workflow actions used the shared audit contract without live policy writes."
+covers = ["R7", "R8"]
+after = [{ epic = 3, needs = "customer-owned proposal and proposed values" }]
+
+[[epic]]
+id = 5
+slug = "epic-mvp-evaluation-and-compose"
+title = "The complete MVP runs and meets its evaluation targets"
+description = "The integrated seeded MVP runs through Docker Compose and reports passing classification, retrieval, assessment, proposal, quote, and safety evaluations."
+covers = ["R9", "R10"]
+after = [{ epic = 4, needs = "complete decision and audit journey for integrated evaluation" }]
