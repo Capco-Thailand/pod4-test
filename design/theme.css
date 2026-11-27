@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap');
+
+/* Shared standalone mockup theme, sourced from shadcn-theme-preview.html. */
+:root {
+  color-scheme: light;
+  font-family: 'Public Sans', system-ui, sans-serif;
+  font-synthesis: none;
+  --background: oklch(.987 .002 197.1);
+  --foreground: oklch(.148 .004 228.8);
+  --card: #fff;
+  --primary: oklch(.514 .222 16.935);
+  --primary-foreground: #fff;
+  --border: oklch(.925 .005 214.3);
+  --muted: oklch(.56 .021 213.5);
+  --surface-muted: oklch(.963 .002 197.1);
+  --primary-soft: oklch(.969 .015 12.422);
+  --primary-tint: oklch(.985 .006 12.422);
+  --overlay: oklch(.148 .004 228.8 / .35);
+  --success-foreground: oklch(.42 .1 166);
+  --success-background: oklch(.96 .02 166);
+  --success-border: oklch(.83 .055 166);
+  --warning-foreground: oklch(.48 .1 77);
+  --warning-background: oklch(.97 .025 77);
+  --warning-border: oklch(.86 .06 77);
+  --destructive: oklch(.577 .245 27.325);
+  --destructive-background: oklch(.97 .02 27.325);
+  --on-dark: #fff;
+  --radius-control: 7px;
+  --radius-panel: 10px;
+
+  /* Existing mockup class names use these aliases. */
+  --ink: var(--foreground);
+  --line: var(--border);
+  --paper: var(--card);
+  --accent: var(--primary);
+  --accent-ink: var(--primary);
+  --accent-soft: var(--primary-soft);
+  --warning: var(--warning-foreground);
+  --warning-soft: var(--warning-background);
+  --focus: var(--primary);
+  --active: var(--success-foreground);
+  --active-soft: var(--success-background);
+  --error: var(--destructive);
+  --radius-sm: var(--radius-control);
+  --radius-md: var(--radius-panel);
+  color: var(--foreground);
+  background: var(--background);
+}

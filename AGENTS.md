@@ -8,7 +8,7 @@ This repository preserves the ticket, UX, implementation, and GitHub delivery fl
 
 The root `package.json` and lockfile currently provide ticket commands and their tests. Add the new application's workspaces, checks, and browser E2E command before implementation. The ticket scripts retain `FR` as the feature ID prefix; change it consistently across scripts, templates, and tests if the new project chooses another prefix.
 
-Before code or infrastructure work, adapt [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) to the new stack. Before tests or security checks, adapt [TESTING_STANDARD.md](docs/TESTING_STANDARD.md). Before UX work, adapt [DESIGN_STANDARD.md](docs/DESIGN_STANDARD.md) and [VISUAL_UX_CONSTRAINTS.md](docs/VISUAL_UX_CONSTRAINTS.md). These documents still contain decisions from the previous application.
+Before code or infrastructure work, adapt [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) to the new stack. Before tests or security checks, adapt [TESTING_STANDARD.md](docs/TESTING_STANDARD.md). Before UX work, read [DESIGN_STANDARD.md](docs/DESIGN_STANDARD.md), [UX_THEME_FOUNDATION.md](docs/UX_THEME_FOUNDATION.md), and [VISUAL_UX_CONSTRAINTS.md](docs/VISUAL_UX_CONSTRAINTS.md); adapt them when the project's brand or research changes. The customer mockup theme is set, while the application stack and checks still require setup.
 
 ## Project boundaries
 

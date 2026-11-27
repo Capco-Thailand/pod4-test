@@ -1,6 +1,6 @@
 # Visual and UX Constraints
 
-Use this document when creating or changing product screens in `design/` or the new application's UI. These are the default visual preferences for the reusable workflow; replace them when the new project's brand or user research calls for a different direction. Screens should feel purpose-built for their users and tasks, not assembled from a generic SaaS template.
+Use this document when creating or changing product screens in `design/` or the new application's UI. For the current I02 customer mockups, [UX_THEME_FOUNDATION.md](UX_THEME_FOUNDATION.md) supplies the shared visual tokens. These are default preferences for the reusable workflow; replace them when a project's brand or user research calls for a different direction. Screens should feel purpose-built for their users and tasks, not assembled from a generic SaaS template.
 
 ## Avoid these visual patterns
 
