@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { api, type Policy } from './api';
+import { api, type BeneficiaryRequest, type Policy } from './api';
 import './style.css';
 
 type Language = 'en' | 'th';
@@ -26,6 +26,21 @@ const copy = {
     credentials: 'Check your email and password.',
     access: 'Your session has ended. Sign in again.',
     noPolicies: 'No policies are available.',
+    signOut: 'Sign out',
+    signingOut: 'Signing out…',
+    signedOut: 'You have signed out.',
+    signOutFailed: 'Sign-out failed. Try again.',
+    history: 'Your requests',
+    historyLoading: 'Loading your requests…',
+    noRequests: 'No requests have been submitted yet.',
+    historyNote: 'Submitted requests do not change policy or coverage.',
+    requestRecorded: 'Request recorded; policy unchanged',
+    proposed: 'Proposed',
+    expired:
+      'This policy has expired. You can view it, but cannot submit a change request.',
+    workspace: 'Your policies and requests',
+    activeStatus: 'ACTIVE',
+    expiredStatus: 'EXPIRED',
   },
   th: {
     switch: 'English',
@@ -49,6 +64,20 @@ const copy = {
     credentials: 'ตรวจสอบอีเมลและรหัสผ่าน',
     access: 'เซสชันสิ้นสุดแล้ว กรุณาเข้าสู่ระบบอีกครั้ง',
     noPolicies: 'ไม่มีกรมธรรม์',
+    signOut: 'ออกจากระบบ',
+    signingOut: 'กำลังออกจากระบบ…',
+    signedOut: 'ออกจากระบบแล้ว',
+    signOutFailed: 'ออกจากระบบไม่สำเร็จ โปรดลองอีกครั้ง',
+    history: 'คำขอของคุณ',
+    historyLoading: 'กำลังโหลดคำขอ…',
+    noRequests: 'ยังไม่มีคำขอที่ส่ง',
+    historyNote: 'คำขอที่ส่งไม่เปลี่ยนแปลงกรมธรรม์หรือความคุ้มครอง',
+    requestRecorded: 'บันทึกคำขอแล้ว กรมธรรม์ยังไม่เปลี่ยนแปลง',
+    proposed: 'เสนอ',
+    expired: 'กรมธรรม์นี้หมดอายุแล้ว คุณดูข้อมูลได้ แต่ส่งคำขอเปลี่ยนแปลงไม่ได้',
+    workspace: 'กรมธรรม์และคำขอของคุณ',
+    activeStatus: 'มีผลบังคับ',
+    expiredStatus: 'หมดอายุ',
   },
 } as const;
 
@@ -60,13 +89,23 @@ export function App() {
   const [relationship, setRelationship] = useState('');
   const [csrf, setCsrf] = useState<string | null>(null);
   const [policies, setPolicies] = useState<Policy[]>([]);
+  const [requests, setRequests] = useState<BeneficiaryRequest[]>([]);
+  const [expandedRequest, setExpandedRequest] = useState<string | null>(null);
+  const [requestDetail, setRequestDetail] = useState<BeneficiaryRequest | null>(
+    null,
+  );
   const [policyId, setPolicyId] = useState('');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [restoring, setRestoring] = useState(true);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signedOut, setSignedOut] = useState(false);
   const [error, setError] = useState('');
   const [requestId, setRequestId] = useState('');
   const errorRef = useRef<HTMLParagraphElement>(null);
   const successRef = useRef<HTMLHeadingElement>(null);
+  const signInRef = useRef<HTMLHeadingElement>(null);
   const t = copy[language];
   const selected = policies.find((policy) => policy.id === policyId);
   useEffect(() => {
@@ -78,6 +117,102 @@ export function App() {
   useEffect(() => {
     if (requestId) successRef.current?.focus();
   }, [requestId]);
+  useEffect(() => {
+    if (signedOut) signInRef.current?.focus();
+  }, [signedOut]);
+
+  function clearProtected() {
+    sessionStorage.removeItem('session-seen');
+    setEmail('');
+    setPassword('');
+    setName('');
+    setRelationship('');
+    setCsrf(null);
+    setPolicies([]);
+    setRequests([]);
+    setPolicyId('');
+    setRequestId('');
+    setExpandedRequest(null);
+    setRequestDetail(null);
+  }
+  async function loadWorkspace() {
+    setLoading(true);
+    setHistoryLoading(true);
+    try {
+      const owned = await api.policies();
+      setPolicies(owned);
+      setPolicyId(owned[0]?.id ?? '');
+      const history = await api.requests();
+      setRequests(history);
+    } catch (cause) {
+      clearProtected();
+      setError(
+        cause instanceof Error && cause.message === 'UNAUTHENTICATED'
+          ? 'access'
+          : 'unavailable',
+      );
+    } finally {
+      setLoading(false);
+      setHistoryLoading(false);
+    }
+  }
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .restore()
+      .then(async (session) => {
+        if (cancelled) return;
+        sessionStorage.setItem('session-seen', '1');
+        setCsrf(session.csrfToken);
+        await loadWorkspace();
+      })
+      .catch((cause) => {
+        if (cancelled) return;
+        if (cause instanceof Error && cause.message === 'UNAUTHENTICATED') {
+          if (sessionStorage.getItem('session-seen')) {
+            clearProtected();
+            setError('access');
+          }
+        } else setError('unavailable');
+      })
+      .finally(() => {
+        if (!cancelled) setRestoring(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  async function signOut() {
+    if (!csrf || signingOut) return;
+    setSigningOut(true);
+    setError('');
+    try {
+      await api.signOut(csrf);
+      clearProtected();
+      setSignedOut(true);
+    } catch {
+      setError('signOutFailed');
+    } finally {
+      setSigningOut(false);
+    }
+  }
+  async function openRequest(id: string) {
+    if (expandedRequest === id) {
+      setExpandedRequest(null);
+      setRequestDetail(null);
+      return;
+    }
+    try {
+      const detail = await api.requestDetail(id);
+      setRequestDetail(detail);
+      setExpandedRequest(id);
+    } catch (cause) {
+      if (cause instanceof Error && cause.message === 'UNAUTHENTICATED') {
+        clearProtected();
+        setError('access');
+      } else setError('unavailable');
+    }
+  }
 
   async function signIn(event: FormEvent) {
     event.preventDefault();
@@ -85,11 +220,10 @@ export function App() {
     setError('');
     try {
       const session = await api.signIn(email, password);
+      sessionStorage.setItem('session-seen', '1');
       setCsrf(session.csrfToken);
-      setLoading(true);
-      const owned = await api.policies();
-      setPolicies(owned);
-      setPolicyId(owned[0]?.id ?? '');
+      setSignedOut(false);
+      await loadWorkspace();
     } catch (cause) {
       setCsrf(null);
       setError(
@@ -118,8 +252,15 @@ export function App() {
     try {
       const result = await api.request(selected.id, csrf, name, relationship);
       setRequestId(result.requestId);
+      setHistoryLoading(true);
+      try {
+        setRequests(await api.requests());
+      } finally {
+        setHistoryLoading(false);
+      }
     } catch (cause) {
       const code = cause instanceof Error ? cause.message : '';
+      if (code === 'UNAUTHENTICATED') clearProtected();
       setError(
         code === 'POLICY_INACTIVE' || code === 'POLICY_NOT_FOUND'
           ? 'refused'
@@ -154,9 +295,14 @@ export function App() {
             {message}
           </p>
         )}
-        {!csrf ? (
+        {signedOut && <p role="status">{t.signedOut}</p>}
+        {restoring ? (
+          <p role="status">{t.loading}</p>
+        ) : !csrf ? (
           <>
-            <h1>{t.signIn}</h1>
+            <h1 ref={signInRef} tabIndex={-1}>
+              {t.signIn}
+            </h1>
             <p>{t.intro}</p>
             <form className="panel" onSubmit={signIn} noValidate>
               <div className="field">
@@ -186,7 +332,17 @@ export function App() {
           </>
         ) : (
           <>
-            <h1>{t.requestTitle}</h1>
+            <div className="account-control">
+              <h1>{t.workspace}</h1>
+              <button
+                className="secondary"
+                type="button"
+                disabled={signingOut}
+                onClick={signOut}
+              >
+                {signingOut ? t.signingOut : t.signOut}
+              </button>
+            </div>
             {loading ? (
               <p role="status">{t.loading}</p>
             ) : policies.length === 0 ? (
@@ -211,38 +367,50 @@ export function App() {
                     ))}
                   </select>
                   <p>
-                    {selected?.number} · <strong>{selected?.status}</strong>
+                    {selected?.number} ·{' '}
+                    <strong className="status-chip">
+                      {selected?.status === 'EXPIRED'
+                        ? t.expiredStatus
+                        : t.activeStatus}
+                    </strong>
                   </p>
                   <p>{selected?.coverage}</p>
                   <p className="small">{t.unchanged}</p>
                 </section>
-                <form className="panel" onSubmit={submit} noValidate>
-                  <div className="field">
-                    <label htmlFor="name">{t.name}</label>
-                    <input
-                      id="name"
-                      maxLength={120}
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="relationship">{t.relationship}</label>
-                    <input
-                      id="relationship"
-                      maxLength={120}
-                      value={relationship}
-                      onChange={(event) => setRelationship(event.target.value)}
-                    />
-                  </div>
-                  <p className="notice">{t.notice}</p>
-                  <button disabled={busy || selected?.status !== 'ACTIVE'}>
-                    {busy ? t.submitting : t.submit}
-                  </button>
-                  {selected?.status !== 'ACTIVE' && (
-                    <p role="status">{t.refused}</p>
-                  )}
-                </form>
+                {selected?.status === 'EXPIRED' ? (
+                  <section className="panel" role="status">
+                    <h2>{t.requestTitle}</h2>
+                    <p>{t.expired}</p>
+                  </section>
+                ) : (
+                  <form className="panel" onSubmit={submit} noValidate>
+                    <h2>{t.requestTitle}</h2>
+                    <div className="field">
+                      <label htmlFor="name">{t.name}</label>
+                      <input
+                        id="name"
+                        maxLength={120}
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="relationship">{t.relationship}</label>
+                      <input
+                        id="relationship"
+                        maxLength={120}
+                        value={relationship}
+                        onChange={(event) =>
+                          setRelationship(event.target.value)
+                        }
+                      />
+                    </div>
+                    <p className="notice">{t.notice}</p>
+                    <button disabled={busy || selected?.status !== 'ACTIVE'}>
+                      {busy ? t.submitting : t.submit}
+                    </button>
+                  </form>
+                )}
                 {requestId && (
                   <h2 ref={successRef} tabIndex={-1} aria-live="polite">
                     {t.success}
@@ -250,6 +418,49 @@ export function App() {
                 )}
               </>
             )}
+            <section className="panel">
+              <h2>{t.history}</h2>
+              <p>{t.historyNote}</p>
+              {historyLoading ? (
+                <p role="status">{t.historyLoading}</p>
+              ) : requests.length === 0 ? (
+                <p>{t.noRequests}</p>
+              ) : (
+                <ol className="history">
+                  {requests.map((item) => (
+                    <li key={item.id}>
+                      <button
+                        className="history-button"
+                        type="button"
+                        aria-expanded={expandedRequest === item.id}
+                        onClick={() => openRequest(item.id)}
+                      >
+                        {item.policyNumber} · {item.proposedName}
+                      </button>
+                      {expandedRequest === item.id &&
+                        requestDetail?.id === item.id && (
+                          <div>
+                            <p>
+                              {t.proposed}: {requestDetail.proposedName} ·{' '}
+                              {requestDetail.proposedRelationship}
+                            </p>
+                            <p>
+                              <time dateTime={requestDetail.submittedAt}>
+                                {new Date(
+                                  requestDetail.submittedAt,
+                                ).toLocaleString(
+                                  language === 'th' ? 'th-TH' : 'en-GB',
+                                )}
+                              </time>
+                            </p>
+                            <p>{t.requestRecorded}</p>
+                          </div>
+                        )}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
           </>
         )}
       </main>

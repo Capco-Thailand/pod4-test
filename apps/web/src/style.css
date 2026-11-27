@@ -1,7 +1,7 @@
 :root {
-  font-family: system-ui, sans-serif;
-  color: #182c28;
-  background: #f7f7f4;
+  font-family: Inter, 'Noto Sans Thai', system-ui, sans-serif;
+  color: #163c32;
+  background: #f6faf7;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -13,16 +13,16 @@ body {
 }
 header {
   padding: 20px;
-  border-bottom: 1px solid #cbd5cf;
+  border-bottom: 1px solid #d5e7df;
   background: white;
 }
 .brand {
-  max-width: 720px;
+  max-width: 960px;
   margin: auto;
   font-weight: 700;
 }
 main {
-  max-width: 720px;
+  max-width: 960px;
   margin: 32px auto;
   padding: 0 20px;
 }
@@ -36,8 +36,8 @@ h2 {
 .panel {
   padding: 24px;
   margin: 24px 0;
-  border: 1px solid #cbd5cf;
-  border-radius: 8px;
+  border: 1px solid #d5e7df;
+  border-radius: 16px;
   background: #fff;
 }
 .field {
@@ -52,18 +52,19 @@ input,
 select {
   width: 100%;
   padding: 10px;
-  border: 1px solid #cbd5cf;
-  border-radius: 4px;
+  border: 1px solid #d5e7df;
+  border-radius: 9px;
   font: inherit;
 }
 button {
   padding: 10px 18px;
   border: 0;
-  border-radius: 4px;
-  background: #176b59;
+  border-radius: 9px;
+  background: #006b4f;
   color: #fff;
   font: inherit;
   cursor: pointer;
+  min-height: 44px;
 }
 button:disabled {
   opacity: 0.55;
@@ -73,12 +74,41 @@ button:disabled {
   display: block;
   margin-left: auto;
   background: white;
-  color: #176b59;
-  border: 1px solid #176b59;
+  color: #006b4f;
+  border: 1px solid #006b4f;
+}
+.secondary {
+  background: white;
+  color: #163c32;
+  border: 1px solid #d5e7df;
+}
+.account-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.history {
+  padding-left: 24px;
+}
+.history li {
+  margin: 16px 0;
+}
+.history-button {
+  background: #d9f5e9;
+  color: #163c32;
+  text-align: left;
+}
+.status-chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 9px;
+  background: #d9f5e9;
+  color: #163c32;
 }
 .notice {
   padding: 12px;
-  border-left: 4px solid #176b59;
+  border-left: 4px solid #006b4f;
   background: #f1f7f4;
 }
 .error {
@@ -91,14 +121,19 @@ button:disabled {
   color: #52635f;
 }
 *:focus-visible {
-  outline: 3px solid #176b59;
+  outline: 3px solid #006b4f;
   outline-offset: 3px;
 }
 @media (max-width: 600px) {
   main {
     margin: 20px auto;
+    padding: 0 16px;
   }
   .panel {
     padding: 18px;
+  }
+  .account-control {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

@@ -6,7 +6,7 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 import type { Pool } from 'pg';
-import type { AuditEvent, Policy, Store } from './app.js';
+import type { AuditEvent, BeneficiaryRequest, Policy, Store } from './app.js';
 
 const hash = (value: string) =>
   createHash('sha256').update(value).digest('hex');
@@ -77,6 +77,26 @@ export function createStore(pool: Pick<Pool, 'query' | 'connect'>): Store {
       const row = result.rows[0];
       return row ? { actorId: row.actor_id, csrf: row.csrf_token } : null;
     },
+    async revokeSession(token, actorId) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await client.query(
+          'DELETE FROM sessions WHERE token_hash = $1 AND actor_id = $2',
+          [hash(token), actorId],
+        );
+        await client.query(
+          'INSERT INTO audit_events (id, actor_id, policy_id, request_id, action, outcome, occurred_at) VALUES ($1, $2, NULL, NULL, $3, $4, now())',
+          [randomUUID(), actorId, 'SIGN_OUT', 'SUCCESS'],
+        );
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
     async policies(actorId) {
       const result = await pool.query<Policy>(
         'SELECT id, number, status, coverage FROM policies WHERE owner_id = $1 ORDER BY number',
@@ -88,6 +108,20 @@ export function createStore(pool: Pick<Pool, 'query' | 'connect'>): Store {
       const result = await pool.query<Policy>(
         'SELECT id, number, status, coverage FROM policies WHERE id = $1 AND owner_id = $2',
         [policyId, actorId],
+      );
+      return result.rows[0] ?? null;
+    },
+    async requests(actorId) {
+      const result = await pool.query<BeneficiaryRequest>(
+        'SELECT r.id, r.policy_id AS "policyId", p.number AS "policyNumber", r.proposed_name AS "proposedName", r.proposed_relationship AS "proposedRelationship", r.created_at AS "submittedAt" FROM beneficiary_requests r JOIN policies p ON p.id = r.policy_id WHERE r.actor_id = $1 AND p.owner_id = $1 ORDER BY r.created_at DESC, r.id DESC',
+        [actorId],
+      );
+      return result.rows;
+    },
+    async request(actorId, requestId) {
+      const result = await pool.query<BeneficiaryRequest>(
+        'SELECT r.id, r.policy_id AS "policyId", p.number AS "policyNumber", r.proposed_name AS "proposedName", r.proposed_relationship AS "proposedRelationship", r.created_at AS "submittedAt" FROM beneficiary_requests r JOIN policies p ON p.id = r.policy_id WHERE r.id = $1 AND r.actor_id = $2 AND p.owner_id = $2',
+        [requestId, actorId],
       );
       return result.rows[0] ?? null;
     },

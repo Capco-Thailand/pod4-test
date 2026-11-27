@@ -9,7 +9,7 @@ async function signIn(
   await page.getByLabel('Password').fill('demo-password');
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Request a beneficiary change' }),
+    page.getByRole('heading', { name: 'Your policies and requests' }),
   ).toBeVisible();
 }
 async function capture(
@@ -49,12 +49,14 @@ test('FR-01 refusal: invalid form and expired policy cannot submit', async ({
   await page.getByRole('button', { name: 'Submit request' }).click();
   await expect(page.getByRole('alert')).toBeFocused();
   await page.getByLabel('Your policy').selectOption({ label: 'DEMO-002' });
-  await expect(page.getByText('EXPIRED')).toBeVisible();
+  await expect(page.getByText('EXPIRED', { exact: true })).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Submit request' }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await expect(
-    page.getByText('This request cannot be submitted for this policy.'),
+    page.getByText(
+      'This policy has expired. You can view it, but cannot submit a change request.',
+    ),
   ).toBeVisible();
   await capture(page, testInfo);
 });

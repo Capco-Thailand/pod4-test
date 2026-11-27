@@ -9,13 +9,27 @@ export type Policy = {
   status: 'ACTIVE' | 'EXPIRED';
   coverage: string;
 };
+export type BeneficiaryRequest = {
+  id: string;
+  policyId: string;
+  policyNumber: string;
+  proposedName: string;
+  proposedRelationship: string;
+  submittedAt: string;
+};
 export type Store = {
   audit(event: AuditEvent): Promise<void>;
   signIn(email: string, password: string): Promise<{ id: string } | null>;
   createSession(actorId: string): Promise<{ token: string; csrf: string }>;
   session(token: string): Promise<{ actorId: string; csrf?: string } | null>;
+  revokeSession(token: string, actorId: string): Promise<void>;
   policies(actorId: string): Promise<Policy[]>;
   policy(actorId: string, policyId: string): Promise<Policy | null>;
+  requests(actorId: string): Promise<BeneficiaryRequest[]>;
+  request(
+    actorId: string,
+    requestId: string,
+  ): Promise<BeneficiaryRequest | null>;
   createRequest(
     actorId: string,
     policyId: string,
@@ -50,6 +64,25 @@ const policySchema = {
     number: { type: 'string' },
     status: { type: 'string', enum: ['ACTIVE', 'EXPIRED'] },
     coverage: { type: 'string' },
+  },
+} as const;
+const requestSchema = {
+  type: 'object',
+  required: [
+    'id',
+    'policyId',
+    'policyNumber',
+    'proposedName',
+    'proposedRelationship',
+    'submittedAt',
+  ],
+  properties: {
+    id: { type: 'string' },
+    policyId: { type: 'string' },
+    policyNumber: { type: 'string' },
+    proposedName: { type: 'string' },
+    proposedRelationship: { type: 'string' },
+    submittedAt: { type: 'string' },
   },
 } as const;
 
@@ -155,6 +188,51 @@ export async function buildApp(store: Store) {
     return token ? store.session(token) : null;
   }
   app.get(
+    '/api/v1/session',
+    {
+      schema: {
+        response: {
+          200: {
+            type: 'object',
+            required: ['csrfToken'],
+            properties: { csrfToken: { type: 'string' } },
+          },
+          401: errorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const session = await actor(request);
+      if (!session) return reply.code(401).send(error('UNAUTHENTICATED'));
+      return { csrfToken: session.csrf };
+    },
+  );
+  app.delete(
+    '/api/v1/session',
+    { schema: { response: { 204: { type: 'null' }, 403: errorSchema } } },
+    async (request, reply) => {
+      const session = await actor(request);
+      if (!session) {
+        reply.clearCookie('session', { path: '/' });
+        return reply.code(204).send();
+      }
+      if (!session.csrf || request.headers['x-csrf-token'] !== session.csrf)
+        return refuse(
+          reply,
+          {
+            actorId: session.actorId,
+            policyId: null,
+            action: 'SIGN_OUT',
+            outcome: 'CSRF_INVALID',
+          },
+          403,
+        );
+      await store.revokeSession(request.cookies.session!, session.actorId);
+      reply.clearCookie('session', { path: '/' });
+      return reply.code(204).send();
+    },
+  );
+  app.get(
     '/api/v1/policies',
     {
       schema: {
@@ -221,6 +299,74 @@ export async function buildApp(store: Store) {
           404,
         );
       return policy;
+    },
+  );
+  app.get(
+    '/api/v1/beneficiary-requests',
+    {
+      schema: {
+        response: {
+          200: { type: 'array', items: requestSchema },
+          401: errorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const session = await actor(request);
+      if (!session)
+        return refuse(
+          reply,
+          {
+            actorId: null,
+            policyId: null,
+            action: 'BENEFICIARY_REQUEST_READ',
+            outcome: 'UNAUTHENTICATED',
+          },
+          401,
+        );
+      return store.requests(session.actorId);
+    },
+  );
+  app.get<{ Params: { requestId: string } }>(
+    '/api/v1/beneficiary-requests/:requestId',
+    {
+      schema: {
+        response: {
+          200: requestSchema,
+          401: errorSchema,
+          404: errorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const session = await actor(request);
+      if (!session)
+        return refuse(
+          reply,
+          {
+            actorId: null,
+            policyId: null,
+            action: 'BENEFICIARY_REQUEST_READ',
+            outcome: 'UNAUTHENTICATED',
+          },
+          401,
+        );
+      const owned = await store.request(
+        session.actorId,
+        request.params.requestId,
+      );
+      if (!owned)
+        return refuse(
+          reply,
+          {
+            actorId: session.actorId,
+            policyId: null,
+            action: 'BENEFICIARY_REQUEST_READ',
+            outcome: 'REQUEST_NOT_FOUND',
+          },
+          404,
+        );
+      return owned;
     },
   );
   app.post<{
