@@ -12,6 +12,40 @@ export type BeneficiaryRequest = {
   proposedRelationship: string;
   submittedAt: string;
 };
+export type Address = {
+  addressLine1: string;
+  addressLine2: string;
+  district: string;
+  province: string;
+  postalCode: string;
+  country: 'Thailand';
+};
+export type DetailRequest = {
+  id: string;
+  policyId: string;
+  policyNumber: string;
+  status: 'SUBMITTED';
+  submittedAt: string;
+} & (
+  | { type: 'address'; proposedAddress: Address }
+  | {
+      type: 'frequency';
+      proposedFrequency: 'monthly' | 'quarterly' | 'semiannual' | 'annual';
+    }
+);
+export type DetailPayload =
+  | {
+      type: 'address';
+      addressLine1: string;
+      addressLine2?: string;
+      district: string;
+      province: string;
+      postalCode: string;
+    }
+  | {
+      type: 'frequency';
+      frequency: 'monthly' | 'quarterly' | 'semiannual' | 'annual';
+    };
 export class ApiError extends Error {
   constructor(public code: string) {
     super(code);
@@ -47,6 +81,26 @@ export const api = {
   policies: async () =>
     read<Policy[]>(
       await fetch('/api/v1/policies', { credentials: 'same-origin' }),
+    ),
+  detailRequests: async () =>
+    read<DetailRequest[]>(
+      await fetch('/api/v1/detail-requests', { credentials: 'same-origin' }),
+    ),
+  detailRequest: async (
+    policyId: string,
+    csrf: string,
+    payload: DetailPayload,
+  ) =>
+    read<{ requestId: string }>(
+      await fetch(
+        `/api/v1/policies/${encodeURIComponent(policyId)}/detail-requests`,
+        {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json', 'x-csrf-token': csrf },
+          body: JSON.stringify(payload),
+        },
+      ),
     ),
   requests: async () =>
     read<BeneficiaryRequest[]>(

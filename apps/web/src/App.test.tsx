@@ -3,6 +3,264 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, test, expect, vi } from 'vitest';
 import { App } from './App';
 
+const activePolicy = {
+  id: 'active',
+  number: 'DEMO-001',
+  status: 'ACTIVE',
+  coverage: 'THB 1,000,000',
+};
+function mockWorkspace(
+  detailResponse: (
+    method?: string,
+  ) => Promise<{ ok: boolean; json: () => Promise<unknown> }>,
+) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, options?: RequestInit) => {
+      if (url.endsWith('/session'))
+        return { ok: true, json: async () => ({ csrfToken: 'csrf' }) };
+      if (url.endsWith('/policies'))
+        return { ok: true, json: async () => [activePolicy] };
+      if (url.endsWith('/beneficiary-requests'))
+        return { ok: true, json: async () => [] };
+      if (url.endsWith('/detail-requests'))
+        return detailResponse(options?.method);
+      throw Error(`unexpected request ${url}`);
+    }),
+  );
+}
+
+test('FR-03 address errors name the field beside its label and focus first invalid input', async () => {
+  mockWorkspace(async () => ({ ok: true, json: async () => [] }));
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText('DEMO-001');
+  await user.selectOptions(screen.getByLabelText('Request type'), 'address');
+  expect(
+    screen.getByRole('heading', { name: 'Correspondence address' }),
+  ).toBeVisible();
+  await user.click(screen.getByRole('button', { name: 'Submit request' }));
+  expect(screen.getByLabelText('Address line 1')).toHaveFocus();
+  expect(
+    screen.getByLabelText('Address line 1').closest('.field'),
+  ).toHaveTextContent('Address line 1 is required');
+  await user.type(screen.getByLabelText('Address line 1'), '1 Demo Road');
+  await user.type(screen.getByLabelText('District'), 'Pathum Wan');
+  await user.type(screen.getByLabelText('Province'), 'Bangkok');
+  await user.type(screen.getByLabelText('Postal code'), '1234');
+  await user.click(screen.getByRole('button', { name: 'ไทย' }));
+  await user.click(screen.getByRole('button', { name: 'ส่งคำขอ' }));
+  expect(screen.getByLabelText('รหัสไปรษณีย์')).toHaveFocus();
+  expect(
+    screen.getByLabelText('รหัสไปรษณีย์').closest('.field'),
+  ).toHaveTextContent('รหัสไปรษณีย์ต้องมีตัวเลข 5 หลัก');
+});
+
+test('FR-03 failed history refresh retries GET without reposting confirmed proposal', async () => {
+  let posts = 0;
+  let reads = 0;
+  mockWorkspace(async (method) => {
+    if (method === 'POST') {
+      posts++;
+      return { ok: true, json: async () => ({ requestId: 'frequency-1' }) };
+    }
+    reads++;
+    if (reads === 3)
+      return {
+        ok: false,
+        json: async () => ({ error: { code: 'UNAVAILABLE' } }),
+      };
+    return {
+      ok: true,
+      json: async () =>
+        reads > 3
+          ? [
+              {
+                id: 'frequency-1',
+                policyId: 'active',
+                policyNumber: 'DEMO-001',
+                type: 'frequency',
+                proposedFrequency: 'annual',
+                status: 'SUBMITTED',
+                submittedAt: '2026-11-27T00:00:00Z',
+              },
+            ]
+          : [],
+    };
+  });
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText('DEMO-001');
+  await user.selectOptions(screen.getByLabelText('Request type'), 'frequency');
+  expect(
+    screen.getByRole('heading', { name: 'Payment frequency' }),
+  ).toBeVisible();
+  await user.selectOptions(
+    screen.getByLabelText('Proposed frequency'),
+    'annual',
+  );
+  await user.click(screen.getByRole('button', { name: 'Submit request' }));
+  expect(
+    await screen.findByRole('heading', { name: /Request recorded/ }),
+  ).toBeVisible();
+  expect(
+    await screen.findByRole('button', { name: 'Retry request history' }),
+  ).toBeVisible();
+  await user.click(
+    screen.getByRole('button', { name: 'Retry request history' }),
+  );
+  expect(await screen.findByText('Proposed: Annual')).toBeVisible();
+  expect(posts).toBe(1);
+});
+
+test('FR-03 detail-history 401 clears protected workspace', async () => {
+  let reads = 0;
+  mockWorkspace(async () => {
+    reads++;
+    return reads === 1
+      ? { ok: true, json: async () => [] }
+      : {
+          ok: false,
+          json: async () => ({ error: { code: 'UNAUTHENTICATED' } }),
+        };
+  });
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText('DEMO-001');
+  await user.selectOptions(screen.getByLabelText('Request type'), 'address');
+  expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeVisible();
+  expect(screen.queryByText('DEMO-001')).not.toBeInTheDocument();
+  expect(screen.getByRole('alert')).toHaveTextContent(
+    'Your session has ended. Sign in again.',
+  );
+});
+
+test('FR-03 address draft survives language switch and submission appears in history', async () => {
+  let history: unknown[] = [];
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, options?: RequestInit) => {
+      if (url.endsWith('/session'))
+        return { ok: true, json: async () => ({ csrfToken: 'csrf' }) };
+      if (url.endsWith('/policies'))
+        return {
+          ok: true,
+          json: async () => [
+            {
+              id: 'active',
+              number: 'DEMO-001',
+              status: 'ACTIVE',
+              coverage: 'THB 1,000,000',
+            },
+          ],
+        };
+      if (url.endsWith('/beneficiary-requests'))
+        return { ok: true, json: async () => [] };
+      if (url.endsWith('/detail-requests') && options?.method === 'POST') {
+        const body = JSON.parse(String(options.body));
+        history = [
+          {
+            id: 'address-1',
+            policyId: 'active',
+            policyNumber: 'DEMO-001',
+            type: 'address',
+            status: 'SUBMITTED',
+            submittedAt: '2026-11-27T00:00:00Z',
+            proposedAddress: { ...body, country: 'Thailand' },
+          },
+        ];
+        return { ok: true, json: async () => ({ requestId: 'address-1' }) };
+      }
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => history };
+      throw Error('unexpected request');
+    }),
+  );
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText('DEMO-001');
+  await user.selectOptions(screen.getByLabelText('Request type'), 'address');
+  await user.type(screen.getByLabelText('Address line 1'), '1 Demo Road');
+  await user.type(screen.getByLabelText('District'), 'Pathum Wan');
+  await user.type(screen.getByLabelText('Province'), 'Bangkok');
+  await user.type(screen.getByLabelText('Postal code'), '10330');
+  await user.click(screen.getByRole('button', { name: 'ไทย' }));
+  expect(screen.getByLabelText('ที่อยู่บรรทัดที่ 1')).toHaveValue('1 Demo Road');
+  await user.click(screen.getByRole('button', { name: 'ส่งคำขอ' }));
+  expect(
+    await screen.findByRole('heading', { name: /บันทึกคำขอแล้ว/ }),
+  ).toHaveFocus();
+  expect(await screen.findByText(/1 Demo Road/)).toBeVisible();
+});
+
+test('FR-03 frequency failure retains draft and retry confirms only after server response', async () => {
+  let attempts = 0;
+  const history: unknown[] = [];
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, options?: RequestInit) => {
+      if (url.endsWith('/session'))
+        return { ok: true, json: async () => ({ csrfToken: 'csrf' }) };
+      if (url.endsWith('/policies'))
+        return {
+          ok: true,
+          json: async () => [
+            {
+              id: 'active',
+              number: 'DEMO-001',
+              status: 'ACTIVE',
+              coverage: 'THB 1,000,000',
+            },
+          ],
+        };
+      if (url.endsWith('/beneficiary-requests'))
+        return { ok: true, json: async () => [] };
+      if (url.endsWith('/detail-requests') && options?.method === 'POST') {
+        attempts++;
+        if (attempts === 1)
+          return {
+            ok: false,
+            json: async () => ({ error: { code: 'UNAVAILABLE' } }),
+          };
+        history.push({
+          id: 'frequency-1',
+          policyId: 'active',
+          policyNumber: 'DEMO-001',
+          type: 'frequency',
+          proposedFrequency: 'quarterly',
+          status: 'SUBMITTED',
+          submittedAt: '2026-11-27T00:00:00Z',
+        });
+        return { ok: true, json: async () => ({ requestId: 'frequency-1' }) };
+      }
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => history };
+      throw Error('unexpected request');
+    }),
+  );
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText('DEMO-001');
+  await user.selectOptions(screen.getByLabelText('Request type'), 'frequency');
+  await user.selectOptions(
+    screen.getByLabelText('Proposed frequency'),
+    'quarterly',
+  );
+  await user.click(screen.getByRole('button', { name: 'Submit request' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'The service is unavailable. Try again.',
+  );
+  expect(screen.getByLabelText('Proposed frequency')).toHaveValue('quarterly');
+  expect(
+    screen.queryByRole('heading', { name: /Request recorded/ }),
+  ).not.toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'Submit request' }));
+  expect(
+    await screen.findByRole('heading', { name: /Request recorded/ }),
+  ).toHaveFocus();
+  expect(await screen.findByText('Proposed: Quarterly')).toBeVisible();
+});
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -55,6 +313,8 @@ test('FR-02 sign-out failure keeps workspace and offers retry', async () => {
             },
           ],
         };
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => [] };
       if (url.endsWith('/beneficiary-requests'))
         return { ok: true, json: async () => [] };
       throw Error('unexpected request');
@@ -90,6 +350,8 @@ test('FR-02 expired policy explains read-only state in Thai', async () => {
             },
           ],
         };
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => [] };
       if (url.endsWith('/beneficiary-requests'))
         return { ok: true, json: async () => [] };
       throw Error('unexpected request');
@@ -130,6 +392,8 @@ test('FR-02 reload restores workspace and sign-out clears it', async () => {
             },
           ],
         };
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => [] };
       if (url.endsWith('/beneficiary-requests') && !options?.method)
         return { ok: true, json: async () => [] };
       throw Error('unexpected request');
@@ -174,6 +438,8 @@ test('FR-02 switching accounts clears credentials and beneficiary draft', async 
             },
           ],
         };
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => [] };
       if (url.endsWith('/beneficiary-requests'))
         return { ok: true, json: async () => [] };
       throw Error('unexpected request');
@@ -231,6 +497,8 @@ test('FR-02 opening history reads the owned request detail', async () => {
             },
           ],
         };
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => [] };
       if (url.endsWith('/beneficiary-requests'))
         return { ok: true, json: async () => [item] };
       if (url.endsWith('/beneficiary-requests/request-1'))
@@ -259,6 +527,8 @@ test('FR-01 bilingual request preserves fields and shows non-binding success', a
         };
       if (url.endsWith('/session'))
         return { ok: true, json: async () => ({ csrfToken: 'csrf' }) };
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => [] };
       if (url.endsWith('/beneficiary-requests') && !options?.method)
         return { ok: true, json: async () => [] };
       if (url.endsWith('/policies'))
@@ -306,6 +576,8 @@ test('FR-01 changing policy clears the previous request confirmation', async () 
         };
       if (url.endsWith('/session'))
         return { ok: true, json: async () => ({ csrfToken: 'csrf' }) };
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => [] };
       if (url.endsWith('/beneficiary-requests') && !options?.method)
         return { ok: true, json: async () => [] };
       if (url.endsWith('/policies'))
@@ -363,6 +635,8 @@ test('FR-01 failed policy load returns to retryable sign-in with an error', asyn
         };
       if (url.endsWith('/session'))
         return { ok: true, json: async () => ({ csrfToken: 'csrf' }) };
+      if (url.endsWith('/detail-requests'))
+        return { ok: true, json: async () => [] };
       if (url.endsWith('/beneficiary-requests') && !options?.method)
         return { ok: true, json: async () => [] };
       if (url.endsWith('/policies')) {

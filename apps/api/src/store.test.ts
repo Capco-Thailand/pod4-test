@@ -2,6 +2,65 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createStore } from './store.js';
 
+test('FR-03 detail request and minimal audit commit atomically without policy writes', async () => {
+  const statements: Array<{ sql: string; values?: unknown[] }> = [];
+  const client = {
+    query: async (sql: string, values?: unknown[]) => {
+      statements.push({ sql, values });
+      return { rows: [] };
+    },
+    release: () => {},
+  };
+  const store = createStore({ connect: async () => client } as never);
+  await store.createDetailRequest('owner', 'policy', {
+    type: 'address',
+    proposedAddress: {
+      addressLine1: '1 Demo Road',
+      addressLine2: '',
+      district: 'Pathum Wan',
+      province: 'Bangkok',
+      postalCode: '10330',
+      country: 'Thailand',
+    },
+  });
+  assert.deepEqual(
+    statements.map(({ sql }) => sql.split(' ')[0]),
+    ['BEGIN', 'INSERT', 'INSERT', 'COMMIT'],
+  );
+  assert.match(statements[1].sql, /detail_requests/);
+  assert.match(statements[2].sql, /audit_events/);
+  assert.ok(
+    !statements[2].values?.some((value) => String(value).includes('Demo Road')),
+  );
+  assert.ok(
+    statements.every(
+      ({ sql }) => !/UPDATE policies|UPDATE coverage/i.test(sql),
+    ),
+  );
+});
+
+test('FR-03 audit failure rolls back detail request', async () => {
+  const statements: string[] = [];
+  const client = {
+    query: async (sql: string) => {
+      statements.push(sql);
+      if (sql.includes('audit_events')) throw Error('audit unavailable');
+      return { rows: [] };
+    },
+    release: () => {},
+  };
+  const store = createStore({ connect: async () => client } as never);
+  await assert.rejects(
+    store.createDetailRequest('owner', 'policy', {
+      type: 'frequency',
+      proposedFrequency: 'annual',
+    }),
+    /audit unavailable/,
+  );
+  assert.equal(statements.at(-1), 'ROLLBACK');
+  assert.ok(!statements.includes('COMMIT'));
+});
+
 test('FR-01 request and audit use one transaction and leave policy untouched', async () => {
   const statements: string[] = [];
   const client = {

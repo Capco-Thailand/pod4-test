@@ -6,7 +6,13 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 import type { Pool } from 'pg';
-import type { AuditEvent, BeneficiaryRequest, Policy, Store } from './app.js';
+import type {
+  AuditEvent,
+  BeneficiaryRequest,
+  DetailRequest,
+  Policy,
+  Store,
+} from './app.js';
 
 const hash = (value: string) =>
   createHash('sha256').update(value).digest('hex');
@@ -124,6 +130,53 @@ export function createStore(pool: Pick<Pool, 'query' | 'connect'>): Store {
         [requestId, actorId],
       );
       return result.rows[0] ?? null;
+    },
+    async detailRequests(actorId) {
+      const result = await pool.query<DetailRequest>(
+        'SELECT r.id, r.policy_id AS "policyId", p.number AS "policyNumber", r.type, r.status, r.proposed_address AS "proposedAddress", r.proposed_frequency AS "proposedFrequency", r.created_at AS "submittedAt" FROM detail_requests r JOIN policies p ON p.id = r.policy_id WHERE r.actor_id = $1 AND p.owner_id = $1 ORDER BY r.created_at DESC, r.id DESC',
+        [actorId],
+      );
+      return result.rows;
+    },
+    async createDetailRequest(actorId, policyId, proposal) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const id = randomUUID();
+        await client.query(
+          'INSERT INTO detail_requests (id, actor_id, policy_id, type, proposed_address, proposed_frequency) VALUES ($1, $2, $3, $4, $5, $6)',
+          [
+            id,
+            actorId,
+            policyId,
+            proposal.type,
+            proposal.type === 'address'
+              ? JSON.stringify(proposal.proposedAddress)
+              : null,
+            proposal.type === 'frequency' ? proposal.proposedFrequency : null,
+          ],
+        );
+        await client.query(
+          'INSERT INTO audit_events (id, actor_id, policy_id, detail_request_id, action, outcome, occurred_at) VALUES ($1, $2, $3, $4, $5, $6, now())',
+          [
+            randomUUID(),
+            actorId,
+            policyId,
+            id,
+            proposal.type === 'address'
+              ? 'ADDRESS_REQUEST_CREATED'
+              : 'FREQUENCY_REQUEST_CREATED',
+            'SUCCESS',
+          ],
+        );
+        await client.query('COMMIT');
+        return id;
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
     },
     async createRequest(actorId, policyId, name, relationship) {
       const client = await pool.connect();
