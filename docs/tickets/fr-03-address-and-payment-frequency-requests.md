@@ -1,6 +1,6 @@
 **Title:** [Story] Submit address and payment-frequency requests
 **Labels:** `type:story`, `role:dev`, `role:be`, `role:fe`
-**GitHub Issue:** Pending ticket/UX PR merge
+**GitHub Issue:** https://github.com/Capco-Thailand/pod4-test/issues/11
 **Feature ID:** FR-03
 **Product context:** [PRD](../PRD.md)
 **Risk:** High — address data, ownership, and the non-binding request boundary.
