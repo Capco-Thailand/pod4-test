@@ -1,6 +1,6 @@
 # Testing standard
 
-FR-01 and FR-02 use `npm test` for ticket scripts, Fastify API injection, database transaction, and React component checks. `npm run test:e2e` runs Chromium against the Compose app at `localhost:4173` and archives a report under `test-results/fr-02/`. API injection proves response and side-effect gates with a controlled store; transaction tests prove commit/rollback ordering with a controlled database client. Running PostgreSQL and browser tests are needed to prove persistence and the full journey. Use the three seeded policies in `apps/api/src/server.ts` for active, expired, and cross-account scenarios.
+FR-01 through FR-03 use `npm test` for ticket scripts, Fastify API injection, database transaction, and React component checks. `npm run test:e2e` runs Chromium against the Compose app at `localhost:4173` and archives a report under `test-results/fr-03/`. API injection proves response and side-effect gates with a controlled store; transaction tests prove commit/rollback ordering with a controlled database client. Running PostgreSQL and browser tests are needed to prove persistence and the full journey. Use the three seeded policies in `apps/api/src/server.ts` for active, expired, and cross-account scenarios.
 
 QA/Sec works across the components this project builds. Use synthetic test data that follows its privacy and safety rules. Tie each test case to a goal, workflow step, safety boundary, or success measure in the current [PRD.md](PRD.md), and record the expected state, external calls, and audit result where applicable.
 

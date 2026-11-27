@@ -1,11 +1,241 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildApp } from './app.js';
+import { buildApp, type Store } from './app.js';
+
+const buildTestApp = (
+  store: Omit<Store, 'detailRequests' | 'createDetailRequest'> &
+    Partial<Pick<Store, 'detailRequests' | 'createDetailRequest'>>,
+) =>
+  buildApp({
+    detailRequests: async () => [],
+    createDetailRequest: async () => 'detail',
+    ...store,
+  });
+
+test('FR-03 valid address request is submitted with an owned history entry', async () => {
+  const created: unknown[] = [];
+  const app = await buildTestApp({
+    audit: async () => {},
+    signIn: async () => null,
+    createSession: async () => ({ token: 'token', csrf: 'csrf' }),
+    session: async () => ({ actorId: 'owner', csrf: 'csrf' }),
+    revokeSession: async () => {},
+    policies: async () => [],
+    policy: async () => ({
+      id: 'active',
+      number: 'DEMO-001',
+      status: 'ACTIVE',
+      coverage: 'THB 1,000,000',
+    }),
+    requests: async () => [],
+    request: async () => null,
+    createRequest: async () => 'beneficiary',
+    detailRequests: async () => [
+      {
+        id: 'address-1',
+        policyId: 'active',
+        policyNumber: 'DEMO-001',
+        type: 'address',
+        status: 'SUBMITTED',
+        submittedAt: '2026-11-27T00:00:00Z',
+        proposedAddress: {
+          addressLine1: '1 Demo Road',
+          addressLine2: '',
+          district: 'Pathum Wan',
+          province: 'Bangkok',
+          postalCode: '10330',
+          country: 'Thailand',
+        },
+      },
+    ],
+    createDetailRequest: async (...args) => {
+      created.push(args);
+      return 'address-1';
+    },
+  });
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/v1/policies/active/detail-requests',
+    headers: { cookie: 'session=token', 'x-csrf-token': 'csrf' },
+    payload: {
+      type: 'address',
+      addressLine1: ' 1 Demo Road ',
+      district: 'Pathum Wan',
+      province: 'Bangkok',
+      postalCode: '10330',
+    },
+  });
+  assert.equal(response.statusCode, 201);
+  assert.equal(response.json().requestId, 'address-1');
+  assert.equal(created.length, 1);
+  const history = await app.inject({
+    method: 'GET',
+    url: '/api/v1/detail-requests',
+    headers: { cookie: 'session=token' },
+  });
+  assert.equal(history.json()[0].type, 'address');
+  await app.close();
+});
+
+test('FR-03 OpenAPI documents exact address and frequency request bodies', async () => {
+  const app = await buildTestApp({
+    audit: async () => {},
+    signIn: async () => null,
+    createSession: async () => ({ token: 'token', csrf: 'csrf' }),
+    session: async () => null,
+    revokeSession: async () => {},
+    policies: async () => [],
+    policy: async () => null,
+    requests: async () => [],
+    request: async () => null,
+    createRequest: async () => 'beneficiary',
+  });
+  const response = await app.inject({
+    method: 'GET',
+    url: '/api/v1/openapi.json',
+  });
+  const body =
+    response.json().paths['/api/v1/policies/{policyId}/detail-requests'].post
+      .requestBody.content['application/json'].schema;
+  assert.equal(body.oneOf.length, 2);
+  const [address, frequency] = body.oneOf;
+  assert.deepEqual(address.required.sort(), [
+    'addressLine1',
+    'district',
+    'postalCode',
+    'province',
+    'type',
+  ]);
+  assert.equal(address.additionalProperties, false);
+  assert.equal(address.properties.addressLine1.maxLength, 120);
+  assert.equal(address.properties.district.maxLength, 80);
+  assert.equal(address.properties.postalCode.pattern, '^[0-9]{5}$');
+  assert.deepEqual(frequency.required.sort(), ['frequency', 'type']);
+  assert.equal(frequency.additionalProperties, false);
+  assert.deepEqual(frequency.properties.frequency.enum, [
+    'monthly',
+    'quarterly',
+    'semiannual',
+    'annual',
+  ]);
+  await app.close();
+});
+
+test('FR-03 frequency, validation, ownership, session, CSRF, and expiry gates', async () => {
+  const created: unknown[] = [];
+  const app = await buildTestApp({
+    audit: async () => {},
+    signIn: async () => null,
+    createSession: async () => ({ token: 'token', csrf: 'csrf' }),
+    session: async (token) =>
+      token === 'token' ? { actorId: 'owner', csrf: 'csrf' } : null,
+    revokeSession: async () => {},
+    policies: async () => [],
+    policy: async (_actor, id) =>
+      id === 'foreign'
+        ? null
+        : {
+            id,
+            number: id,
+            status: id === 'expired' ? 'EXPIRED' : 'ACTIVE',
+            coverage: 'THB 1,000,000',
+          },
+    requests: async () => [],
+    request: async () => null,
+    createRequest: async () => 'beneficiary',
+    createDetailRequest: async (...args) => {
+      created.push(args);
+      return 'frequency-1';
+    },
+  });
+  const submit = (
+    id: string,
+    body: object,
+    headers: Record<string, string> = {
+      cookie: 'session=token',
+      'x-csrf-token': 'csrf',
+    },
+  ) =>
+    app.inject({
+      method: 'POST',
+      url: `/api/v1/policies/${id}/detail-requests`,
+      headers,
+      payload: body,
+    });
+  assert.equal(
+    (await submit('active', { type: 'frequency', frequency: 'quarterly' }))
+      .statusCode,
+    201,
+  );
+  for (const body of [
+    { type: 'frequency', frequency: 'weekly' },
+    { type: 'frequency', frequency: 'annual', extra: 'x' },
+    {
+      type: 'address',
+      addressLine1: ' ',
+      district: 'Bangkok',
+      province: 'Bangkok',
+      postalCode: '10330',
+    },
+    {
+      type: 'address',
+      addressLine1: 'x'.repeat(121),
+      district: 'Bangkok',
+      province: 'Bangkok',
+      postalCode: '10330',
+    },
+    {
+      type: 'address',
+      addressLine1: '1 Road',
+      district: 'Bangkok',
+      province: 'Bangkok',
+      postalCode: '1033x',
+    },
+  ])
+    assert.equal((await submit('active', body)).statusCode, 400);
+  assert.equal(
+    (await submit('foreign', { type: 'frequency', frequency: 'monthly' }))
+      .statusCode,
+    404,
+  );
+  assert.equal(
+    (await submit('expired', { type: 'frequency', frequency: 'monthly' }))
+      .statusCode,
+    409,
+  );
+  assert.equal(
+    (
+      await submit(
+        'active',
+        { type: 'frequency', frequency: 'monthly' },
+        { cookie: 'session=token' },
+      )
+    ).statusCode,
+    403,
+  );
+  assert.equal(
+    (await submit('active', { type: 'frequency', frequency: 'monthly' }, {}))
+      .statusCode,
+    401,
+  );
+  assert.equal(
+    (await submit('active', { type: 'frequency', frequency: 'weekly' }, {}))
+      .statusCode,
+    401,
+  );
+  assert.equal(
+    (await submit('foreign', { type: 'frequency', frequency: 'weekly' }))
+      .statusCode,
+    404,
+  );
+  assert.equal(created.length, 1);
+  await app.close();
+});
 
 test('FR-02 session restores CSRF and sign-out revokes the cookie session', async () => {
   let active = true;
   const events: string[] = [];
-  const app = await buildApp({
+  const app = await buildTestApp({
     audit: async (event) => {
       events.push(`${event.action}:${event.outcome}`);
     },
@@ -88,7 +318,7 @@ test('FR-02 request list and detail expose owned records only', async () => {
     proposedRelationship: 'Sister',
     submittedAt: '2026-11-27T09:00:00.000Z',
   };
-  const app = await buildApp({
+  const app = await buildTestApp({
     audit: async () => {},
     signIn: async () => null,
     createSession: async () => ({ token: '', csrf: '' }),
@@ -141,7 +371,7 @@ test('FR-02 request list and detail expose owned records only', async () => {
 });
 
 test('FR-01 sign-in creates a cookie-backed session and exposes only owned policies', async () => {
-  const app = await buildApp({
+  const app = await buildTestApp({
     audit: async () => {},
     signIn: async (email, password) =>
       email === 'owner@example.test' && password === 'demo-password'
@@ -202,7 +432,7 @@ test('FR-01 sign-in creates a cookie-backed session and exposes only owned polic
 });
 
 test('FR-01 session cookie is Secure behind HTTPS proxy', async () => {
-  const app = await buildApp({
+  const app = await buildTestApp({
     audit: async () => {},
     signIn: async () => ({ id: 'owner-1' }),
     createSession: async () => ({ token: 'opaque-token', csrf: 'csrf-token' }),
@@ -226,7 +456,7 @@ test('FR-01 session cookie is Secure behind HTTPS proxy', async () => {
 
 test('FR-01 request creation requires owner, ACTIVE status, valid fields, and CSRF', async () => {
   const created: string[] = [];
-  const app = await buildApp({
+  const app = await buildTestApp({
     audit: async () => {},
     signIn: async () => ({ id: 'owner-1' }),
     createSession: async () => ({ token: 'opaque-token', csrf: 'csrf-token' }),
@@ -358,7 +588,7 @@ test('FR-01 sign-in and rejected protected actions append minimal audit events',
     action: string;
     outcome: string;
   }> = [];
-  const app = await buildApp({
+  const app = await buildTestApp({
     audit: async (event) => {
       events.push(event);
     },

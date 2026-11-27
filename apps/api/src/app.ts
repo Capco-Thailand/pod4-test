@@ -17,6 +17,27 @@ export type BeneficiaryRequest = {
   proposedRelationship: string;
   submittedAt: string;
 };
+export type AddressProposal = {
+  addressLine1: string;
+  addressLine2: string;
+  district: string;
+  province: string;
+  postalCode: string;
+  country: 'Thailand';
+};
+export type DetailProposal =
+  | { type: 'address'; proposedAddress: AddressProposal }
+  | {
+      type: 'frequency';
+      proposedFrequency: 'monthly' | 'quarterly' | 'semiannual' | 'annual';
+    };
+export type DetailRequest = DetailProposal & {
+  id: string;
+  policyId: string;
+  policyNumber: string;
+  status: 'SUBMITTED';
+  submittedAt: string;
+};
 export type Store = {
   audit(event: AuditEvent): Promise<void>;
   signIn(email: string, password: string): Promise<{ id: string } | null>;
@@ -35,6 +56,12 @@ export type Store = {
     policyId: string,
     name: string,
     relationship: string,
+  ): Promise<string>;
+  detailRequests(actorId: string): Promise<DetailRequest[]>;
+  createDetailRequest(
+    actorId: string,
+    policyId: string,
+    proposal: DetailProposal,
   ): Promise<string>;
 };
 export type AuditEvent = {
@@ -85,9 +112,66 @@ const requestSchema = {
     submittedAt: { type: 'string' },
   },
 } as const;
+const detailRequestSchema = {
+  type: 'object',
+  required: ['id', 'policyId', 'policyNumber', 'type', 'status', 'submittedAt'],
+  properties: {
+    id: { type: 'string' },
+    policyId: { type: 'string' },
+    policyNumber: { type: 'string' },
+    type: { type: 'string', enum: ['address', 'frequency'] },
+    status: { type: 'string', enum: ['SUBMITTED'] },
+    submittedAt: { type: 'string' },
+    proposedAddress: {
+      type: 'object',
+      properties: {
+        addressLine1: { type: 'string' },
+        addressLine2: { type: 'string' },
+        district: { type: 'string' },
+        province: { type: 'string' },
+        postalCode: { type: 'string' },
+        country: { type: 'string' },
+      },
+    },
+    proposedFrequency: { type: 'string' },
+  },
+} as const;
+const detailRequestBodySchema = {
+  oneOf: [
+    {
+      type: 'object',
+      required: ['type', 'addressLine1', 'district', 'province', 'postalCode'],
+      additionalProperties: false,
+      properties: {
+        type: { type: 'string', enum: ['address'] },
+        addressLine1: { type: 'string', minLength: 1, maxLength: 120 },
+        addressLine2: { type: 'string', maxLength: 120 },
+        district: { type: 'string', minLength: 1, maxLength: 80 },
+        province: { type: 'string', minLength: 1, maxLength: 80 },
+        postalCode: { type: 'string', pattern: '^[0-9]{5}$' },
+      },
+    },
+    {
+      type: 'object',
+      required: ['type', 'frequency'],
+      additionalProperties: false,
+      properties: {
+        type: { type: 'string', enum: ['frequency'] },
+        frequency: {
+          type: 'string',
+          enum: ['monthly', 'quarterly', 'semiannual', 'annual'],
+        },
+      },
+    },
+  ],
+} as const;
 
 export async function buildApp(store: Store) {
-  const app = Fastify({ logger: true, trustProxy: true });
+  const app = Fastify({
+    logger: true,
+    trustProxy: true,
+    ajv: { customOptions: { removeAdditional: false } },
+  });
   await app.register(cookie);
   await app.register(swagger, {
     openapi: {
@@ -112,7 +196,9 @@ export async function buildApp(store: Store) {
           policyId: null,
           action:
             request.method === 'POST'
-              ? 'BENEFICIARY_REQUEST_CREATE'
+              ? request.url.endsWith('/detail-requests')
+                ? 'DETAIL_REQUEST_CREATE'
+                : 'BENEFICIARY_REQUEST_CREATE'
               : 'POLICY_READ',
           outcome: 'VALIDATION_ERROR',
         });
@@ -472,6 +558,195 @@ export async function buildApp(store: Store) {
         policy.id,
         name,
         relationship,
+      );
+      return reply.code(201).send({ requestId });
+    },
+  );
+  app.get(
+    '/api/v1/detail-requests',
+    {
+      schema: {
+        response: {
+          200: { type: 'array', items: detailRequestSchema },
+          401: errorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const session = await actor(request);
+      if (!session)
+        return refuse(
+          reply,
+          {
+            actorId: null,
+            policyId: null,
+            action: 'DETAIL_REQUEST_READ',
+            outcome: 'UNAUTHENTICATED',
+          },
+          401,
+        );
+      return store.detailRequests(session.actorId);
+    },
+  );
+  const detailContext = new WeakMap<
+    object,
+    { actorId: string; policy: Policy }
+  >();
+  app.post<{ Params: { policyId: string }; Body: Record<string, unknown> }>(
+    '/api/v1/policies/:policyId/detail-requests',
+    {
+      preValidation: async (request, reply) => {
+        const session = await actor(request);
+        const action = 'DETAIL_REQUEST_CREATE';
+        if (!session)
+          return refuse(
+            reply,
+            {
+              actorId: null,
+              policyId: null,
+              action,
+              outcome: 'UNAUTHENTICATED',
+            },
+            401,
+          );
+        const policy = await store.policy(
+          session.actorId,
+          request.params.policyId,
+        );
+        if (!policy)
+          return refuse(
+            reply,
+            {
+              actorId: session.actorId,
+              policyId: null,
+              action,
+              outcome: 'POLICY_NOT_FOUND',
+            },
+            404,
+          );
+        if (!session.csrf || request.headers['x-csrf-token'] !== session.csrf)
+          return refuse(
+            reply,
+            {
+              actorId: session.actorId,
+              policyId: policy.id,
+              action,
+              outcome: 'CSRF_INVALID',
+            },
+            403,
+          );
+        if (policy.status !== 'ACTIVE')
+          return refuse(
+            reply,
+            {
+              actorId: session.actorId,
+              policyId: policy.id,
+              action,
+              outcome: 'POLICY_INACTIVE',
+            },
+            409,
+          );
+        detailContext.set(request, { actorId: session.actorId, policy });
+      },
+      schema: {
+        body: detailRequestBodySchema,
+        response: {
+          201: {
+            type: 'object',
+            required: ['requestId'],
+            properties: { requestId: { type: 'string' } },
+          },
+          400: errorSchema,
+          401: errorSchema,
+          403: errorSchema,
+          404: errorSchema,
+          409: errorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { actorId, policy } = detailContext.get(request)!;
+      const action = 'DETAIL_REQUEST_CREATE';
+      const body = request.body;
+      let proposal: DetailProposal | null = null;
+      if (
+        body &&
+        typeof body === 'object' &&
+        body.type === 'address' &&
+        Object.keys(body).every((key) =>
+          [
+            'type',
+            'addressLine1',
+            'addressLine2',
+            'district',
+            'province',
+            'postalCode',
+          ].includes(key),
+        )
+      ) {
+        const line1 =
+          typeof body.addressLine1 === 'string' ? body.addressLine1.trim() : '';
+        const line2 =
+          typeof body.addressLine2 === 'string' ? body.addressLine2.trim() : '';
+        const district =
+          typeof body.district === 'string' ? body.district.trim() : '';
+        const province =
+          typeof body.province === 'string' ? body.province.trim() : '';
+        const postalCode = body.postalCode;
+        if (
+          line1 &&
+          line1.length <= 120 &&
+          line2.length <= 120 &&
+          district &&
+          district.length <= 80 &&
+          province &&
+          province.length <= 80 &&
+          typeof postalCode === 'string' &&
+          /^[0-9]{5}$/.test(postalCode) &&
+          (body.addressLine2 === undefined ||
+            typeof body.addressLine2 === 'string')
+        )
+          proposal = {
+            type: 'address',
+            proposedAddress: {
+              addressLine1: line1,
+              addressLine2: line2,
+              district,
+              province,
+              postalCode,
+              country: 'Thailand',
+            },
+          };
+      } else if (
+        body &&
+        typeof body === 'object' &&
+        body.type === 'frequency' &&
+        Object.keys(body).every((key) => ['type', 'frequency'].includes(key)) &&
+        ['monthly', 'quarterly', 'semiannual', 'annual'].includes(
+          String(body.frequency),
+        )
+      ) {
+        proposal = {
+          type: 'frequency',
+          proposedFrequency: body.frequency as
+            'monthly' | 'quarterly' | 'semiannual' | 'annual',
+        };
+      }
+      if (!proposal)
+        return refuse(
+          reply,
+          {
+            actorId,
+            policyId: policy.id,
+            action,
+            outcome: 'VALIDATION_ERROR',
+          },
+          400,
+        );
+      const requestId = await store.createDetailRequest(
+        actorId,
+        policy.id,
+        proposal,
       );
       return reply.code(201).send({ requestId });
     },

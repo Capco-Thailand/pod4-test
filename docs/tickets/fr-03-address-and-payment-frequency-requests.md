@@ -4,7 +4,7 @@
 **Feature ID:** FR-03
 **Product context:** [PRD](../PRD.md)
 **Risk:** High — address data, ownership, and the non-binding request boundary.
-**State:** Ready for ticket/UX review
+**State:** Implementation in review
 
 ## Summary and objective
 An authenticated owner can submit a correspondence-address or payment-frequency request for an owned ACTIVE policy. The app records the request and an audit event without changing the policy.
@@ -41,7 +41,7 @@ None assigned.
 
 ## Accepted decisions and readiness
 - 2026-11-27: Party Mode scope approved: Thailand correspondence address uses required line 1, optional line 2, district, province, and five-digit postcode. Frequencies are monthly, quarterly, semiannual, and annual. Both remain non-binding requests.
-- Ticket and UX handoff await review and merge. An active Issue, FR-02 implementation merge, and implementation preflight remain pending.
+- Ticket/UX PR #10 and FR-02 implementation PR #9 merged on 2026-11-27. Issue #11 is active; implementation preflight passed.
 
 ## UX handoff references
 [DESIGN.md](../../_bmad-output/initiative-policy-endorsement-assistant/ux-fr-03/DESIGN.md), [EXPERIENCE.md](../../_bmad-output/initiative-policy-endorsement-assistant/ux-fr-03/EXPERIENCE.md), [request mockup](../../design/page/address-and-frequency.html), and [mockup index](../../design/page/index.html). The UX spines govern behavior and appearance.
