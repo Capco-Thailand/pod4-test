@@ -1,6 +1,6 @@
 **Title:** [Story] Enforce session and policy ownership boundaries
 **Labels:** `type:story`, `role:dev`, `role:be`, `role:fe`
-**GitHub Issue:** Pending ticket/UX PR merge
+**GitHub Issue:** https://github.com/Capco-Thailand/pod4-test/issues/7
 **Feature ID:** FR-02
 **Product context:** [PRD](../PRD.md)
 **Risk:** High — a missing access check could expose another customer's policy or request.
