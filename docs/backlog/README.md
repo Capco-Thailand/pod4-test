@@ -7,7 +7,7 @@ The [PRD](../PRD.md) defines MVP scope. These are draft tickets in build order, 
 Source: [customer access epic](../../_bmad-output/initiative-policy-endorsement-assistant/tickets/epic-customer-access-and-requests/epic-customer-access-and-requests.md) and its [ordered story split](../../_bmad-output/initiative-policy-endorsement-assistant/tickets/epic-customer-access-and-requests/tickets/tickets.toml).
 
 1. [FR-01 — Bilingual beneficiary request](../tickets/fr-01-bilingual-beneficiary-request.md) (selected ticket; UX review pending)
-2. [FR-02 — Session and ownership boundaries](fr-02-session-and-policy-ownership.md)
+2. [FR-02 — Session and ownership boundaries](../tickets/fr-02-session-and-policy-ownership.md) (selected ticket; UX review pending)
 3. [FR-03 — Address and payment-frequency requests](fr-03-address-and-payment-frequency-requests.md)
 4. [FR-06 — Accidental-death rider request](fr-06-accidental-death-rider-request.md)
 5. [FR-07 — Customer-access refactor sweep](fr-07-customer-access-refactor-sweep.md)
