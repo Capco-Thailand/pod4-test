@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FR-02 session and policy mockup</title>
+  <link rel="stylesheet" href="session-and-policies.css"><script src="session-and-policies.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="index.html">Policy Endorsement Assistant</a><nav aria-label="Account"><button id="language" type="button" aria-label="Switch language">ไทย</button><button id="signout" type="button" data-en="Sign out" data-th="ออกจากระบบ">Sign out</button></nav></header>
+  <main id="workspace">
+    <p class="eyebrow">FR-02 · SYNTHETIC DEMO</p>
+    <h1 data-en="Your policies and requests" data-th="กรมธรรม์และคำขอของคุณ">Your policies and requests</h1>
+    <p data-en="Only policies and requests linked to this account appear here." data-th="หน้านี้แสดงเฉพาะกรมธรรม์และคำขอของบัญชีนี้">Only policies and requests linked to this account appear here.</p>
+    <div class="grid">
+      <section class="panel" aria-labelledby="policy-heading">
+        <h2 id="policy-heading" data-en="Your policy" data-th="กรมธรรม์ของคุณ">Your policy</h2>
+        <label for="policy" data-en="Select policy" data-th="เลือกกรมธรรม์">Select policy</label>
+        <select id="policy"><option value="active">DEMO-001 · ACTIVE</option><option value="expired">DEMO-002 · EXPIRED</option></select>
+        <p class="policy-number" id="policy-number">DEMO-001</p><p class="status" id="policy-status">ACTIVE</p><p id="coverage">THB 1,000,000</p>
+        <p data-en="Your current policy and coverage are unchanged." data-th="กรมธรรม์และความคุ้มครองปัจจุบันยังไม่เปลี่ยนแปลง">Your current policy and coverage are unchanged.</p>
+        <div id="active-action"><a class="primary" href="beneficiary-request.html" data-en="Request beneficiary change" data-th="ขอเปลี่ยนผู้รับผลประโยชน์">Request beneficiary change</a></div>
+        <p id="expired-action" class="notice" hidden data-en="This policy has expired. You can view it, but cannot submit a change request." data-th="กรมธรรม์นี้หมดอายุแล้ว คุณดูข้อมูลได้ แต่ส่งคำขอเปลี่ยนแปลงไม่ได้">This policy has expired. You can view it, but cannot submit a change request.</p>
+      </section>
+      <section class="panel" aria-labelledby="history-heading">
+        <h2 id="history-heading" data-en="Your requests" data-th="คำขอของคุณ">Your requests</h2>
+        <p data-en="Submitted requests do not change policy or coverage." data-th="คำขอที่ส่งแล้วไม่เปลี่ยนแปลงกรมธรรม์หรือความคุ้มครอง">Submitted requests do not change policy or coverage.</p>
+        <ol class="history"><li><strong data-en="Beneficiary change · DEMO-001" data-th="เปลี่ยนผู้รับผลประโยชน์ · DEMO-001">Beneficiary change · DEMO-001</strong><span data-en="Proposed: Mali · Sister" data-th="ข้อมูลที่ขอเปลี่ยน: มะลิ · พี่สาว">Proposed: Mali · Sister</span><time datetime="2026-11-27T09:00:00Z">27 Nov 2026 · 09:00 UTC</time><small data-en="Request recorded; policy unchanged" data-th="บันทึกคำขอแล้ว กรมธรรม์ยังไม่เปลี่ยนแปลง">Request recorded; policy unchanged</small></li></ol>
+        <p class="empty-example" data-en="Empty state: No requests have been submitted yet." data-th="เมื่อยังไม่มีข้อมูล: ยังไม่มีคำขอที่ส่งแล้ว">Empty state: No requests have been submitted yet.</p>
+      </section>
+    </div><p class="mock-note">Mockup only. The controls demonstrate UI states; no data is saved.</p>
+  </main>
+  <section id="signed-out" class="signed-out" hidden tabindex="-1" aria-labelledby="signed-out-heading"><h1 id="signed-out-heading" data-en="You are signed out" data-th="คุณออกจากระบบแล้ว">You are signed out</h1><p data-en="Sign in again to view your policies and requests." data-th="เข้าสู่ระบบอีกครั้งเพื่อดูกรมธรรม์และคำขอของคุณ">Sign in again to view your policies and requests.</p><a class="primary" href="sign-in.html" data-en="Sign in" data-th="เข้าสู่ระบบ">Sign in</a></section>
+</body></html>
