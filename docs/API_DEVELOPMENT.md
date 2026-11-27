@@ -1,15 +1,21 @@
 # API development
 
-## Implemented FR-01 API
+## Implemented FR-01 and FR-02 API
 
 Run `npm install` and `docker compose up --build`. The web app and API share `http://localhost:4173`; the ingress proxies `/api` to the internal API service. Compose applies `apps/api/src/schema.sql` and seeds only synthetic accounts when `SEED_DEMO=true`. Demo credentials are `owner@example.test` or `other@example.test` with password `demo-password`. The API refuses startup if PostgreSQL or migration fails. OpenAPI is at `GET /api/v1/openapi.json` through the web ingress.
 
 | Method and path | Success | Rejection |
 | --- | --- | --- |
 | `POST /api/v1/session` with email/password | `200 {csrfToken}` and HttpOnly cookie | `400 VALIDATION_ERROR`, `401 INVALID_CREDENTIALS` |
+| `GET /api/v1/session` | `200 {csrfToken}` for a valid cookie | `401 UNAUTHENTICATED` |
+| `DELETE /api/v1/session` with `x-csrf-token` | `204`, revoked session and cleared cookie; also `204` for a missing session | `403 CSRF_INVALID` for an active session |
 | `GET /api/v1/policies` | `200` owned policy list | `401 UNAUTHENTICATED` |
 | `GET /api/v1/policies/:policyId` | `200` owned policy | `401 UNAUTHENTICATED`, `404 POLICY_NOT_FOUND` |
+| `GET /api/v1/beneficiary-requests` | `200` owned request list | `401 UNAUTHENTICATED` |
+| `GET /api/v1/beneficiary-requests/:requestId` | `200` owned request detail | `401 UNAUTHENTICATED`, `404 REQUEST_NOT_FOUND` for foreign or unknown IDs |
 | `POST /api/v1/policies/:policyId/beneficiary-requests` with `{name,relationship}` and `x-csrf-token` | `201 {requestId}` | `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `403 CSRF_INVALID`, `404 POLICY_NOT_FOUND`, `409 POLICY_INACTIVE` |
+
+Request reads return `id`, `policyId`, `policyNumber`, `proposedName`, `proposedRelationship`, and `submittedAt`. Their SQL checks both the request actor and policy owner. Sign-out deletes the hashed session and writes a minimal audit event in one transaction.
 
 Errors use `{ "error": { "code": "..." } }`. The actor comes only from the opaque database session. Missing and foreign policies both return 404. Sessions expire after 30 idle minutes and renew on protected calls. Cookies use HttpOnly and SameSite Strict, with Secure under HTTPS. Name and relationship are trimmed, required, and at most 120 characters. A request and audit event commit together; successful sign-in commits its session and audit event together. Rejected sign-ins and protected actions append audit events with the actor and owned policy references when available. Audit excludes tokens and beneficiary details, and policy rows stay unchanged. Retrying a successful submission creates another request because FR-01 has no idempotency key. `DATABASE_URL` and `SEED_DEMO` are server-only settings; the browser uses same-origin `/api` through the web proxy.
 

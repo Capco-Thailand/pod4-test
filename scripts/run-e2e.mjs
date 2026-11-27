@@ -14,7 +14,7 @@ const result = spawnSync(
   ['node_modules/@playwright/test/cli.js', 'test'],
   { stdio: 'inherit' },
 );
-const folder = join('test-results', 'fr-01');
+const folder = join('test-results', 'fr-02');
 try {
   await mkdir(folder, { recursive: true });
   const name = `${parts}.html`;
@@ -25,7 +25,7 @@ try {
   });
   await writeFile(
     join('test-results', 'index.html'),
-    `<!doctype html><meta http-equiv="refresh" content="0;url=fr-01/${name}"><a href="fr-01/${name}">Latest FR-01 report</a>`,
+    `<!doctype html><meta http-equiv="refresh" content="0;url=fr-02/${name}"><a href="fr-02/${name}">Latest FR-02 report</a>`,
   );
 } catch (error) {
   console.error('Could not archive Playwright report:', error);
