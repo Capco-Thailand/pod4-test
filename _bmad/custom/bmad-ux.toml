@@ -1,5 +1,7 @@
 [workflow]
 persistent_facts = [
+  "skill:ui-ux-pro-max",
+  "For every UI or UX design task, apply relevant UI UX Pro Max guidance to each affected screen and record the checks in the UX handoff.",
   "On a reused installation, verify the project's design standards, ticket paths, and PR workflow exist before using this handoff process.",
   "For UI work, read the ticket requirements first. Then read {project-root}/docs/DESIGN_STANDARD.md and {project-root}/docs/VISUAL_UX_CONSTRAINTS.md before shaping DESIGN.md, EXPERIENCE.md, or mockups.",
   "file:{project-root}/docs/UX_THEME_FOUNDATION.md",

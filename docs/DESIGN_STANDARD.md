@@ -4,6 +4,8 @@ PO/UX design output is browser-viewable HTML, CSS, and JavaScript under `design/
 
 For the current I02 customer mockups, the [UX theme foundation](UX_THEME_FOUNDATION.md) defines the shared visual roles. `design/theme.css` supplies the [theme preview](../design/page/shadcn-theme-preview.html) tokens to every mockup. The older pages use `design/global.css`, which imports that theme; FR-15 pages import the theme directly. Keep page layouts specific to their tasks.
 
+For every UI or UX design task, use [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) to check each affected screen's layout, type hierarchy, responsive behavior, interaction, and accessibility. This includes design exploration, mockups, edits, and reviews inside or outside `bmad-ux`. Record applied checks and accepted choices in the UX handoff or review; keep `DESIGN.md`, `EXPERIENCE.md`, and the shared theme tokens in `design/theme.css` authoritative.
+
 ## Layout
 
 - `design/theme.css`: shared colors, typography, control and status tokens for customer mockups.

@@ -1,32 +1,5 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sign in | Policy Endorsement Assistant</title>
-  <link rel="stylesheet" href="../global.css">
-  <script src="sign-in.js" defer></script>
-</head>
-<body>
-  <header class="site-header"><span class="brand-mark" aria-hidden="true">PE</span><span>Policy Endorsement Assistant<small>Synthetic customer prototype</small></span></header>
-  <main class="auth-shell">
-    <section class="auth-copy" aria-labelledby="page-title">
-      <p class="auth-kicker">Customer access <span>/</span> Sign in</p>
-      <h1 class="auth-title" id="page-title">Sign in to view your policies.</h1>
-      <p class="auth-intro">Use your synthetic demo account to view policies linked to you and request a change.</p>
-      <p class="auth-boundary"><strong>Prototype only</strong><span>No live policy or coverage is changed here.</span></p>
-    </section>
-    <section class="auth-panel" aria-labelledby="form-title">
-      <div class="auth-panel-heading"><p class="auth-panel-kicker">Customer sign-in</p><h2 id="form-title">Your demo account</h2></div>
-      <p class="auth-message" id="message" role="alert" tabindex="-1" hidden></p>
-      <form id="sign-in-form" novalidate>
-        <div class="auth-field"><label for="account">Account ID</label><input id="account" name="account" autocomplete="username" required aria-describedby="account-error"><small id="account-error" hidden>Enter your account ID.</small></div>
-        <div class="auth-field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="password-error"><small id="password-error" hidden>Enter your password.</small></div>
-        <button class="button auth-submit" type="submit">Sign in</button>
-      </form>
-      <p class="auth-footer">Synthetic demo accounts only. This preview never contacts an API or creates a session.</p>
-    </section>
-  </main>
-  <nav class="auth-preview" aria-label="Mockup state previews"><button type="button" data-state="initial">Initial</button><button type="button" data-state="invalid">Invalid credentials</button><button type="button" data-state="expired">Session ended</button><button type="button" data-state="unavailable">API unavailable</button></nav>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in · I02 design</title><link rel="stylesheet" href="backlog.css"><link rel="stylesheet" href="backlog-mobile.css"><script src="backlog.js" defer></script></head>
+<body class="screen-sign-in"><a class="skip" href="#main">Skip to content</a><header class="top"><div class="top-inner"><a class="brand" href="index.html">Policy Endorsement Assistant<small>Synthetic customer design</small></a><nav class="nav" aria-label="Main"><a href="policies.html">Policies</a><a href="change-history.html">History</a><a href="index.html">All mockups</a><button type="button" data-signout>Sign out</button></nav></div></header>
+<nav class="journey" aria-label="Customer journey"><ol><li><a href="sign-in.html" aria-current="step"><span class="step-number">01</span><span>Access</span></a></li><li><a href="policies.html"><span class="step-number">02</span><span>Policies</span></a></li><li><a href="create-endorsement-request.html"><span class="step-number">03</span><span>Request</span></a></li><li><a href="policy-evidence.html"><span class="step-number">04</span><span>Evidence</span></a></li><li><a href="check-endorsement-eligibility.html"><span class="step-number">05</span><span>Assessment</span></a></li><li><a href="proposal-review.html"><span class="step-number">06</span><span>Decision</span></a></li></ol></nav><main id="main" class="wrap"><p class="eyebrow">FR-01 / FR-02 · Customer reference</p><div class="grid"><div><h1>Sign in to your demo account</h1><p class="lede">View your synthetic policies and record a non-binding change request.</p><div class="note"><strong>Demonstration only</strong><p>No real identity, policy, or coverage is connected to this design.</p></div></div><div class="panel"><h2>Customer sign in</h2><form id="signin-form" novalidate><div id="signin-error" class="note error" role="alert" tabindex="-1" hidden><strong>Check your sign-in details.</strong><p>Enter both fields to continue.</p></div><div class="field"><label for="account">Demo account</label><input id="account" name="account" autocomplete="username" value="narin.demo"><p class="field-error" id="account-error" hidden>Enter a demo account.</p></div><div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password"><p class="field-error" id="password-error" hidden>Enter a password.</p></div><button class="secondary" type="button" id="toggle-password" aria-controls="password" aria-pressed="false">Show password</button><div class="actions"><button class="button" type="submit">Sign in</button></div></form><div id="session-ended" class="note warning" role="status" hidden><strong>Your session has ended.</strong><p>Sign in again to view your policies.</p></div></div></div><div class="preview"><strong>Review state</strong><div class="actions"><button class="secondary" type="button" data-show="session-ended">Session ended</button></div></div><footer class="footer">Illustrative synthetic data. This design cannot change a policy, issue coverage, or record a real decision.</footer></main></body></html>
